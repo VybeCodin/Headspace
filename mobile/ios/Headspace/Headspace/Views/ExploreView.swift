@@ -3,6 +3,10 @@ import SwiftUI
 struct ExploreView: View {
     @Environment(DataService.self) private var dataService
     @State private var searchText = ""
+    @State private var searchResults: [Content] = []
+    @State private var isSearching = false
+    @State private var selectedAudioItem: Content?
+    @State private var selectedVideoItem: Content?
 
     var body: some View {
         NavigationStack {
@@ -11,11 +15,29 @@ struct ExploreView: View {
                     ScrollView(showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 24) {
                             searchBar
-                            categoryGrid(data.categories)
-                            if let featured = data.featuredCollection {
-                                featuredCollectionView(featured)
+
+                            if searchText.isEmpty {
+                                categoryGrid(data.categories)
+                                if let featured = data.featuredCollection {
+                                    featuredCollectionView(featured)
+                                }
+                                guidedProgramsSection(data.guidedPrograms)
+                            } else if isSearching {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity, minHeight: 100)
+                            } else if searchResults.isEmpty {
+                                VStack(spacing: 8) {
+                                    Text("No results found")
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundColor(HeadspaceTheme.primaryText)
+                                    Text("Try a different search term")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(HeadspaceTheme.secondaryText)
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 200)
+                            } else {
+                                searchResultsList
                             }
-                            guidedProgramsSection(data.guidedPrograms)
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
@@ -30,6 +52,17 @@ struct ExploreView: View {
             }
             .background(HeadspaceTheme.background)
             .task { await dataService.loadExplore() }
+            .onChange(of: searchText) { _, query in
+                Task { await performSearch(query) }
+            }
+            .fullScreenCover(item: $selectedAudioItem) { item in
+                AudioPlayerView(item: item.asTodaySectionItem)
+                    .environment(dataService)
+            }
+            .fullScreenCover(item: $selectedVideoItem) { item in
+                VideoPlayerView(item: item.asTodaySectionItem)
+                    .environment(dataService)
+            }
         }
     }
 
@@ -52,13 +85,113 @@ struct ExploreView: View {
         )
     }
 
+    // MARK: - Search Results
+    private var searchResultsList: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("\(searchResults.count) result\(searchResults.count == 1 ? "" : "s")")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(HeadspaceTheme.secondaryText)
+
+            ForEach(searchResults) { item in
+                Button {
+                    if item.type == .video {
+                        selectedVideoItem = item
+                    } else {
+                        selectedAudioItem = item
+                    }
+                } label: {
+                    searchResultRow(item)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func searchResultRow(_ item: Content) -> some View {
+        HStack(spacing: 14) {
+            RoundedRectangle(cornerRadius: 10)
+                .fill(item.asTodaySectionItem.gradient)
+                .frame(width: 56, height: 56)
+                .overlay(
+                    Image(systemName: iconForType(item.type))
+                        .font(.system(size: 20))
+                        .foregroundColor(.white)
+                )
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(HeadspaceTheme.primaryText)
+                    .lineLimit(1)
+
+                HStack(spacing: 6) {
+                    Text(item.type.displayName)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(HeadspaceTheme.orange)
+
+                    if !item.durationLabel.isEmpty {
+                        Text("·")
+                            .foregroundColor(HeadspaceTheme.secondaryText)
+                        Text(item.durationLabel)
+                            .font(.system(size: 12))
+                            .foregroundColor(HeadspaceTheme.secondaryText)
+                    }
+
+                    if let instructor = item.instructor {
+                        Text("·")
+                            .foregroundColor(HeadspaceTheme.secondaryText)
+                        Text(instructor.name)
+                            .font(.system(size: 12))
+                            .foregroundColor(HeadspaceTheme.secondaryText)
+                    }
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: "play.circle.fill")
+                .font(.system(size: 28))
+                .foregroundColor(HeadspaceTheme.orange)
+        }
+        .padding(12)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.white))
+    }
+
+    private func iconForType(_ type: ContentType) -> String {
+        switch type {
+        case .meditation: return "brain.head.profile"
+        case .breathwork: return "wind"
+        case .sleepStory: return "moon.stars"
+        case .soundscape: return "waveform"
+        case .video: return "play.rectangle"
+        case .focusMusic: return "music.note"
+        case .reflect: return "sparkles"
+        }
+    }
+
+    private func performSearch(_ query: String) async {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
+            searchResults = []
+            return
+        }
+        isSearching = true
+        do {
+            searchResults = try await dataService.searchContent(query: trimmed)
+        } catch {
+            searchResults = []
+        }
+        isSearching = false
+    }
+
     // MARK: - Category Grid
     private func categoryGrid(_ categories: [Category]) -> some View {
-        LazyVGrid(columns: [
+        let filtered = categories.filter { !["Move", "Focus"].contains($0.name) }
+        return LazyVGrid(columns: [
             GridItem(.flexible(), spacing: 12),
             GridItem(.flexible(), spacing: 12)
         ], spacing: 12) {
-            ForEach(categories) { category in
+            ForEach(filtered) { category in
                 NavigationLink {
                     CategoryDetailView(category: category)
                         .environment(dataService)

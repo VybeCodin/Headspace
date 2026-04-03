@@ -95,6 +95,17 @@ export interface CollectionDetail {
   items: Content[];
 }
 
+// User Progress
+export interface UserProgress {
+  id: string;
+  userId: string;
+  contentId: string;
+  status: "notStarted" | "inProgress" | "completed";
+  progressSeconds: number;
+  completedAt: string | null;
+  startedAt: string | null;
+}
+
 // Luma Chat
 export interface ChatMessage {
   id: string;

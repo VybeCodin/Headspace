@@ -37,10 +37,27 @@ actor APIClient {
         try await get("\(baseURL)/content?category=\(categoryId)")
     }
 
+    func fetchAllContent() async throws -> [Content] {
+        try await get("\(baseURL)/content")
+    }
+
     // MARK: - Collections
 
     func fetchCollection(_ id: String) async throws -> CollectionDetail {
         try await get("\(baseURL)/collections/\(id)")
+    }
+
+    // MARK: - Progress
+
+    func fetchUserProgress() async throws -> [UserProgress] {
+        try await get("\(baseURL)/users/\(userId)/progress")
+    }
+
+    func postProgress(contentId: String, progressSeconds: Int) async throws -> UserProgress {
+        try await post(
+            "\(baseURL)/users/\(userId)/progress",
+            body: ["contentId": contentId, "progressSeconds": progressSeconds]
+        )
     }
 
     // MARK: - Luma

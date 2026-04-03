@@ -6,6 +6,7 @@ import type {
   LumaData,
   ChatMessage,
   ProfileData,
+  UserProgress,
 } from "./types";
 
 const BASE_URL = "https://headspace-api.vercel.app/api";
@@ -60,4 +61,23 @@ export async function sendLumaMessage(text: string): Promise<ChatMessage> {
 
 export async function fetchProfile(): Promise<ProfileData> {
   return apiFetch<ProfileData>(`/users/${USER_ID}/profile`);
+}
+
+export async function fetchUserProgress(): Promise<UserProgress[]> {
+  return apiFetch<UserProgress[]>(`/users/${USER_ID}/progress`);
+}
+
+export async function postProgress(
+  contentId: string,
+  progressSeconds: number
+): Promise<UserProgress> {
+  const res = await fetch(`${BASE_URL}/users/${USER_ID}/progress`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contentId, progressSeconds }),
+  });
+  if (!res.ok) {
+    throw new Error(`API error: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
 }

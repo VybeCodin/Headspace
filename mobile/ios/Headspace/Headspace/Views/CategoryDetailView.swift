@@ -7,6 +7,7 @@ struct CategoryDetailView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var selectedItem: Content?
+    @State private var selectedVideoItem: Content?
 
     var body: some View {
         ZStack {
@@ -27,19 +28,25 @@ struct CategoryDetailView: View {
             } else {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        // Category header
                         categoryHeader
 
-                        // Content list
-                        LazyVStack(spacing: 0) {
+                        LazyVStack(spacing: 12) {
                             ForEach(items) { item in
-                                Button { selectedItem = item } label: {
+                                Button {
+                                    if item.type == .video {
+                                        selectedVideoItem = item
+                                    } else {
+                                        selectedItem = item
+                                    }
+                                } label: {
                                     contentRow(item)
                                 }
                                 .buttonStyle(.plain)
                             }
                         }
-                        .padding(.top, 8)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
+                        .padding(.bottom, 40)
                     }
                 }
             }
@@ -47,6 +54,10 @@ struct CategoryDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task { await loadItems() }
         .fullScreenCover(item: $selectedItem) { item in
+            AudioPlayerView(item: item.asTodaySectionItem)
+                .environment(dataService)
+        }
+        .fullScreenCover(item: $selectedVideoItem) { item in
             VideoPlayerView(item: item.asTodaySectionItem)
                 .environment(dataService)
         }
@@ -55,67 +66,87 @@ struct CategoryDetailView: View {
     // MARK: - Header
 
     private var categoryHeader: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                LinearGradient(
-                    colors: [category.swiftColor, category.swiftColor.opacity(0.6)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
+        ZStack {
+            LinearGradient(
+                colors: [category.swiftColor, category.swiftColor.opacity(0.6)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
 
-                // Decorative circles
-                Circle()
-                    .fill(Color.white.opacity(0.08))
-                    .frame(width: 200, height: 200)
-                    .offset(x: 100, y: -40)
-                Circle()
-                    .fill(Color.white.opacity(0.06))
-                    .frame(width: 150, height: 150)
-                    .offset(x: -80, y: 50)
+            // Decorative circles
+            Circle()
+                .fill(Color.white.opacity(0.1))
+                .frame(width: 240, height: 240)
+                .offset(x: 120, y: -60)
+            Circle()
+                .fill(Color.white.opacity(0.08))
+                .frame(width: 180, height: 180)
+                .offset(x: -100, y: 60)
+            Circle()
+                .fill(Color.white.opacity(0.05))
+                .frame(width: 120, height: 120)
+                .offset(x: 60, y: 80)
 
-                VStack(spacing: 8) {
-                    Image(systemName: category.icon)
-                        .font(.system(size: 36, weight: .medium))
-                        .foregroundStyle(.white)
-                    Text(category.name)
-                        .font(.system(size: 28, weight: .bold))
-                        .foregroundStyle(.white)
-                    if let desc = category.description {
-                        Text(desc)
-                            .font(.system(size: 14))
-                            .foregroundStyle(.white.opacity(0.8))
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                    }
-                    Text("\(items.count) sessions")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.7))
-                        .padding(.top, 2)
+            VStack(spacing: 12) {
+                Image(systemName: category.icon)
+                    .font(.system(size: 40, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(width: 72, height: 72)
+                    .background(
+                        Circle()
+                            .fill(Color.white.opacity(0.2))
+                    )
+
+                Text(category.name)
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(.white)
+
+                if let desc = category.description {
+                    Text(desc)
+                        .font(.system(size: 15))
+                        .foregroundStyle(.white.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
                 }
-                .padding(.vertical, 32)
+
+                Text("\(items.count) sessions")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.white.opacity(0.2))
+                    )
+                    .padding(.top, 4)
             }
-            .frame(height: 200)
-            .clipShape(RoundedRectangle(cornerRadius: 0))
+            .padding(.vertical, 36)
         }
+        .frame(height: 260)
+        .clipShape(
+            UnevenRoundedRectangle(
+                bottomLeadingRadius: 28,
+                bottomTrailingRadius: 28
+            )
+        )
     }
 
     // MARK: - Content Row
 
     private func contentRow(_ item: Content) -> some View {
         HStack(spacing: 14) {
-            // Thumbnail
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 12)
                 .fill(
                     LinearGradient(
-                        colors: [category.swiftColor.opacity(0.3), category.swiftColor.opacity(0.15)],
+                        colors: [category.swiftColor.opacity(0.2), category.swiftColor.opacity(0.1)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: 56, height: 56)
+                .frame(width: 52, height: 52)
                 .overlay(
                     Image(systemName: iconForType(item.type))
-                        .font(.system(size: 20))
+                        .font(.system(size: 20, weight: .medium))
                         .foregroundStyle(category.swiftColor)
                 )
 
@@ -125,16 +156,10 @@ struct CategoryDetailView: View {
                     .foregroundStyle(HeadspaceTheme.primaryText)
                     .lineLimit(1)
 
-                HStack(spacing: 6) {
-                    Text(item.type.rawValue.capitalized)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(category.swiftColor)
-
+                HStack(spacing: 5) {
                     if !item.durationLabel.isEmpty {
-                        Text("·")
-                            .foregroundStyle(HeadspaceTheme.secondaryText)
                         Text(item.durationLabel)
-                            .font(.system(size: 12))
+                            .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(HeadspaceTheme.secondaryText)
                     }
 
@@ -151,11 +176,15 @@ struct CategoryDetailView: View {
             Spacer()
 
             Image(systemName: "play.circle.fill")
-                .font(.system(size: 28))
+                .font(.system(size: 32))
                 .foregroundStyle(category.swiftColor)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, y: 2)
+        )
     }
 
     // MARK: - Helpers

@@ -136,7 +136,13 @@ struct TodayView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(section.items) { item in
-                        Button { selectedVideoItem = item } label: {
+                        Button {
+                            if item.type == "video" {
+                                selectedVideoItem = item
+                            } else {
+                                selectedItem = item
+                            }
+                        } label: {
                             DailyEssentialCard(item: item)
                         }
                         .buttonStyle(.plain)
@@ -155,7 +161,13 @@ struct TodayView: View {
 
             HStack(spacing: 12) {
                 ForEach(section.items) { item in
-                    Button { selectedVideoItem = item } label: {
+                    Button {
+                        if item.type == "video" {
+                            selectedVideoItem = item
+                        } else {
+                            selectedItem = item
+                        }
+                    } label: {
                         EditorialCard(item: item)
                     }
                     .buttonStyle(.plain)

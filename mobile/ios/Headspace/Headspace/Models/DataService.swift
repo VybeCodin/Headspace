@@ -26,6 +26,9 @@ final class DataService {
     // MARK: - Content Store
     var contentStore: [String: Content] = [:]
 
+    // MARK: - User Progress
+    var progressByContentId: [String: UserProgress] = [:]
+
     private let api = APIClient.shared
 
     // MARK: - Lookups
@@ -58,6 +61,51 @@ final class DataService {
         let detail = try await api.fetchCollection(id)
         for item in detail.items { contentStore[item.id] = item }
         return detail
+    }
+
+    // MARK: - Search
+
+    private var allContent: [Content]?
+
+    func searchContent(query: String) async throws -> [Content] {
+        if allContent == nil {
+            allContent = try await api.fetchAllContent()
+            for item in allContent! { contentStore[item.id] = item }
+        }
+        let q = query.lowercased()
+        return allContent!.filter { item in
+            item.title.lowercased().contains(q)
+            || (item.description?.lowercased().contains(q) ?? false)
+            || item.type.displayName.lowercased().contains(q)
+            || item.tags.contains(where: { $0.lowercased().contains(q) })
+        }
+    }
+
+    // MARK: - User Progress
+
+    func loadUserProgress() async {
+        do {
+            let progressList = try await api.fetchUserProgress()
+            for p in progressList {
+                progressByContentId[p.contentId] = p
+            }
+        } catch {
+            // Silently fail — progress is supplementary
+        }
+    }
+
+    func refreshUserProgress() async {
+        progressByContentId = [:]
+        await loadUserProgress()
+    }
+
+    func postProgress(contentId: String, progressSeconds: Int) async {
+        do {
+            let updated = try await api.postProgress(contentId: contentId, progressSeconds: progressSeconds)
+            progressByContentId[updated.contentId] = updated
+        } catch {
+            // Silently fail
+        }
     }
 
     // MARK: - Load Methods

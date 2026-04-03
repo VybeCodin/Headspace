@@ -71,7 +71,15 @@ struct AudioPlayerView: View {
             }
         }
         .task { await loadAndPlay() }
-        .onDisappear { player.cleanup() }
+        .onDisappear {
+            let seconds = Int(player.currentTime)
+            player.cleanup()
+            if seconds > 0 {
+                Task {
+                    await dataService.postProgress(contentId: item.contentId, progressSeconds: seconds)
+                }
+            }
+        }
     }
 
     // MARK: - Player Content
