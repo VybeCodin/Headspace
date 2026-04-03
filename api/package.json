@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx --watch src/index.ts",
     "start": "tsx src/index.ts",
+    "build": "esbuild src/serverless.ts --bundle --platform=node --format=esm --outfile=api/index.mjs --packages=external",
     "vercel-dev": "tsx src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.0",
+    "esbuild": "^0.28.0",
     "tsx": "^4.21.0"
   }
 }

@@ -1,5 +1,6 @@
 node_modules/
 dist/
+api/index.mjs
 *.db
 *.db-journal
 .env.local

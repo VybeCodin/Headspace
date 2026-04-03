@@ -1,7 +1,7 @@
 import { handle } from "hono/vercel";
-import { createApp } from "../src/app";
-import { createDb } from "../src/db/index";
-import { seed } from "../src/db/seed";
+import { createApp } from "./app";
+import { createDb } from "./db/index";
+import { seed } from "./db/seed";
 
 const db = createDb();
 const seedPromise = seed(db);
