@@ -1572,6 +1572,7 @@ async function seed(db2) {
     { id: "cat_move", name: "Move", slug: "move", icon: "forward.fill", color: "#00A050", sortOrder: 2 },
     { id: "cat_focus", name: "Focus", slug: "focus", icon: "music.note", color: "#3C64C8", sortOrder: 3 }
   ]).run();
+  const audioUrl = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
   await db2.insert(content).values([
     {
       id: "cnt_001",
@@ -1582,7 +1583,7 @@ async function seed(db2) {
       instructorId: "inst_001",
       durationSeconds: 600,
       tags: JSON.stringify(["stress", "beginner", "guided", "morning"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       difficulty: "beginner",
       createdAt: "2025-01-15"
@@ -1595,7 +1596,7 @@ async function seed(db2) {
       categoryId: "cat_meditate",
       durationSeconds: 60,
       tags: JSON.stringify(["breathwork", "quick"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-03-01"
     },
@@ -1606,7 +1607,7 @@ async function seed(db2) {
       type: "reflect",
       categoryId: "cat_meditate",
       tags: JSON.stringify(["reflect", "daily"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-03-10"
     },
@@ -1618,7 +1619,7 @@ async function seed(db2) {
       categoryId: "cat_meditate",
       durationSeconds: 1200,
       tags: JSON.stringify(["meditation", "daily"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-03-10"
     },
@@ -1630,7 +1631,7 @@ async function seed(db2) {
       categoryId: "cat_sleep",
       durationSeconds: 420,
       tags: JSON.stringify(["sleep", "story"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-03-10"
     },
@@ -1642,7 +1643,7 @@ async function seed(db2) {
       categoryId: "cat_meditate",
       durationSeconds: 60,
       tags: JSON.stringify(["video", "gratitude"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-02-01"
     },
@@ -1654,7 +1655,7 @@ async function seed(db2) {
       categoryId: "cat_meditate",
       durationSeconds: 240,
       tags: JSON.stringify(["video", "hope"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-02-15"
     },
@@ -1666,7 +1667,7 @@ async function seed(db2) {
       categoryId: "cat_sleep",
       durationSeconds: 2700,
       tags: JSON.stringify(["sleep", "rain", "soundscape"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-01-20"
     },
@@ -1679,7 +1680,7 @@ async function seed(db2) {
       instructorId: "inst_002",
       durationSeconds: 1800,
       tags: JSON.stringify(["sleep", "story"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: true,
       createdAt: "2025-02-10"
     },
@@ -1690,7 +1691,7 @@ async function seed(db2) {
       type: "soundscape",
       categoryId: "cat_sleep",
       tags: JSON.stringify(["soundscape", "loop"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-01-05"
     },
@@ -1701,7 +1702,7 @@ async function seed(db2) {
       type: "soundscape",
       categoryId: "cat_sleep",
       tags: JSON.stringify(["soundscape", "loop"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-01-05"
     },
@@ -1712,7 +1713,7 @@ async function seed(db2) {
       type: "soundscape",
       categoryId: "cat_sleep",
       tags: JSON.stringify(["soundscape", "loop"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-01-05"
     },
@@ -1724,7 +1725,7 @@ async function seed(db2) {
       categoryId: "cat_sleep",
       durationSeconds: 900,
       tags: JSON.stringify(["sleep", "body-scan"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-02-20"
     },
@@ -1736,31 +1737,270 @@ async function seed(db2) {
       categoryId: "cat_sleep",
       durationSeconds: 300,
       tags: JSON.stringify(["sleep", "breathwork"]),
-      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+      audioUrl,
       isPremium: false,
       createdAt: "2025-02-20"
+    },
+    // --- CBT Course Sessions ---
+    {
+      id: "cnt_100",
+      title: "Understanding Anxiety",
+      description: "Learn what anxiety is and how mindfulness can help manage it.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 600,
+      tags: JSON.stringify(["cbt", "anxiety", "beginner"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "beginner",
+      createdAt: "2025-01-16"
+    },
+    {
+      id: "cnt_101",
+      title: "Thought Patterns",
+      description: "Observe your thought patterns without judgment.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 480,
+      tags: JSON.stringify(["cbt", "thoughts"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "beginner",
+      createdAt: "2025-01-17"
+    },
+    {
+      id: "cnt_102",
+      title: "Mindful Breathing Basics",
+      description: "A foundational breathwork exercise for daily practice.",
+      type: "breathwork",
+      categoryId: "cat_meditate",
+      durationSeconds: 300,
+      tags: JSON.stringify(["breathwork", "cbt", "foundation"]),
+      audioUrl,
+      isPremium: false,
+      createdAt: "2025-01-18"
+    },
+    {
+      id: "cnt_103",
+      title: "Reframing Negative Thoughts",
+      description: "Learn to identify and gently reframe unhelpful thinking patterns.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 720,
+      tags: JSON.stringify(["cbt", "reframing", "intermediate"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "intermediate",
+      createdAt: "2025-01-19"
+    },
+    {
+      id: "cnt_104",
+      title: "Grounding Technique",
+      description: "A 6-minute grounding exercise when anxiety feels overwhelming.",
+      type: "breathwork",
+      categoryId: "cat_meditate",
+      durationSeconds: 360,
+      tags: JSON.stringify(["cbt", "grounding", "anxiety"]),
+      audioUrl,
+      isPremium: false,
+      createdAt: "2025-01-20"
+    },
+    {
+      id: "cnt_105",
+      title: "Self-Compassion Practice",
+      description: "Cultivate kindness toward yourself during difficult moments.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 600,
+      tags: JSON.stringify(["cbt", "self-compassion"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "intermediate",
+      createdAt: "2025-01-21"
+    },
+    {
+      id: "cnt_106",
+      title: "Accepting Uncertainty",
+      description: "Explore how to sit with uncertainty without spiraling into worry.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 900,
+      tags: JSON.stringify(["cbt", "acceptance", "advanced"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "advanced",
+      createdAt: "2025-01-22"
+    },
+    {
+      id: "cnt_107",
+      title: "Building Resilience",
+      description: "Strengthen your inner resources to handle life's challenges.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 600,
+      tags: JSON.stringify(["cbt", "resilience"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "intermediate",
+      createdAt: "2025-01-23"
+    },
+    // --- Sleep Course Sessions ---
+    {
+      id: "cnt_110",
+      title: "Wind Down Visualization",
+      description: "A calming visualization to transition from day to night.",
+      type: "meditation",
+      categoryId: "cat_sleep",
+      instructorId: "inst_002",
+      durationSeconds: 600,
+      tags: JSON.stringify(["sleep", "visualization"]),
+      audioUrl,
+      isPremium: false,
+      createdAt: "2025-02-21"
+    },
+    {
+      id: "cnt_111",
+      title: "Progressive Muscle Relaxation",
+      description: "Systematically release tension from head to toe for deep sleep.",
+      type: "meditation",
+      categoryId: "cat_sleep",
+      instructorId: "inst_002",
+      durationSeconds: 720,
+      tags: JSON.stringify(["sleep", "relaxation", "body"]),
+      audioUrl,
+      isPremium: false,
+      createdAt: "2025-02-22"
+    },
+    {
+      id: "cnt_112",
+      title: "Sleep Breathing Technique",
+      description: "A rhythmic breathing pattern designed to lull you into sleep.",
+      type: "breathwork",
+      categoryId: "cat_sleep",
+      durationSeconds: 480,
+      tags: JSON.stringify(["sleep", "breathwork"]),
+      audioUrl,
+      isPremium: false,
+      createdAt: "2025-02-23"
+    },
+    // --- Stress Management Course Sessions ---
+    {
+      id: "cnt_120",
+      title: "What is Stress?",
+      description: "Understanding your stress response and how mindfulness helps.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 480,
+      tags: JSON.stringify(["stress", "beginner"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "beginner",
+      createdAt: "2025-02-01"
+    },
+    {
+      id: "cnt_121",
+      title: "Breath as Anchor",
+      description: "Use your breath as a steady anchor when stress arises.",
+      type: "breathwork",
+      categoryId: "cat_meditate",
+      durationSeconds: 300,
+      tags: JSON.stringify(["stress", "breathwork"]),
+      audioUrl,
+      isPremium: false,
+      createdAt: "2025-02-02"
+    },
+    {
+      id: "cnt_122",
+      title: "Noting Technique",
+      description: "Practice silently noting thoughts and feelings to create distance.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 600,
+      tags: JSON.stringify(["stress", "noting", "technique"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "intermediate",
+      createdAt: "2025-02-03"
+    },
+    {
+      id: "cnt_123",
+      title: "Releasing Tension",
+      description: "A body-focused meditation to melt away physical stress.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      durationSeconds: 480,
+      tags: JSON.stringify(["stress", "body", "tension"]),
+      audioUrl,
+      isPremium: false,
+      createdAt: "2025-02-04"
+    },
+    {
+      id: "cnt_124",
+      title: "Compassionate Awareness",
+      description: "Bring warmth and compassion to stressful experiences.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 720,
+      tags: JSON.stringify(["stress", "compassion"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "intermediate",
+      createdAt: "2025-02-05"
+    },
+    {
+      id: "cnt_125",
+      title: "Integrating Mindfulness",
+      description: "Bring everything together into a sustainable daily practice.",
+      type: "meditation",
+      categoryId: "cat_meditate",
+      instructorId: "inst_001",
+      durationSeconds: 600,
+      tags: JSON.stringify(["stress", "integration"]),
+      audioUrl,
+      isPremium: false,
+      difficulty: "intermediate",
+      createdAt: "2025-02-06"
     }
   ]).run();
   await db2.insert(collections).values([
     {
       id: "col_001",
       title: "CBT for Anxiety & Depression",
-      description: "A structured program using cognitive behavioral therapy techniques.",
+      description: "A structured program using cognitive behavioral therapy techniques to manage anxiety and lift your mood.",
       type: "program",
       gradientColors: JSON.stringify(["#FF6496", "#FF9664"]),
-      totalSessions: 21,
+      totalSessions: 12,
       estimatedDailyMinutes: 10,
       isPremium: true
     },
     {
       id: "col_002",
       title: "Finding Your Best Sleep",
-      description: "A comprehensive sleep improvement program.",
+      description: "A comprehensive sleep improvement program combining meditations, breathwork, and sleep stories.",
       type: "program",
       gradientColors: JSON.stringify(["#0064DC", "#1E8CFF"]),
-      totalSessions: 18,
+      totalSessions: 8,
       estimatedDailyMinutes: 10,
       isPremium: true
+    },
+    {
+      id: "col_003",
+      title: "Stress Management Basics",
+      description: "Build a toolkit of mindfulness techniques to handle everyday stress with ease.",
+      type: "program",
+      gradientColors: JSON.stringify(["#1A6B54", "#3CB89C"]),
+      totalSessions: 6,
+      estimatedDailyMinutes: 8,
+      isPremium: false
     },
     {
       id: "col_010",
@@ -1779,17 +2019,35 @@ async function seed(db2) {
     }
   ]).run();
   await db2.insert(collectionContents).values([
-    // CBT for Anxiety & Depression
-    { collectionId: "col_001", contentId: "cnt_001", sortOrder: 0 },
-    { collectionId: "col_001", contentId: "cnt_012", sortOrder: 1 },
-    { collectionId: "col_001", contentId: "cnt_021", sortOrder: 2 },
-    { collectionId: "col_001", contentId: "cnt_020", sortOrder: 3 },
-    // Finding Your Best Sleep
+    // CBT for Anxiety & Depression (12 sessions → 3 levels of 4)
+    { collectionId: "col_001", contentId: "cnt_100", sortOrder: 0 },
+    { collectionId: "col_001", contentId: "cnt_001", sortOrder: 1 },
+    { collectionId: "col_001", contentId: "cnt_101", sortOrder: 2 },
+    { collectionId: "col_001", contentId: "cnt_102", sortOrder: 3 },
+    { collectionId: "col_001", contentId: "cnt_103", sortOrder: 4 },
+    { collectionId: "col_001", contentId: "cnt_104", sortOrder: 5 },
+    { collectionId: "col_001", contentId: "cnt_012", sortOrder: 6 },
+    { collectionId: "col_001", contentId: "cnt_105", sortOrder: 7 },
+    { collectionId: "col_001", contentId: "cnt_106", sortOrder: 8 },
+    { collectionId: "col_001", contentId: "cnt_107", sortOrder: 9 },
+    { collectionId: "col_001", contentId: "cnt_021", sortOrder: 10 },
+    { collectionId: "col_001", contentId: "cnt_020", sortOrder: 11 },
+    // Finding Your Best Sleep (8 sessions → 2 levels of 4)
     { collectionId: "col_002", contentId: "cnt_040", sortOrder: 0 },
     { collectionId: "col_002", contentId: "cnt_041", sortOrder: 1 },
-    { collectionId: "col_002", contentId: "cnt_060", sortOrder: 2 },
-    { collectionId: "col_002", contentId: "cnt_061", sortOrder: 3 },
-    { collectionId: "col_002", contentId: "cnt_022", sortOrder: 4 },
+    { collectionId: "col_002", contentId: "cnt_112", sortOrder: 2 },
+    { collectionId: "col_002", contentId: "cnt_060", sortOrder: 3 },
+    { collectionId: "col_002", contentId: "cnt_110", sortOrder: 4 },
+    { collectionId: "col_002", contentId: "cnt_111", sortOrder: 5 },
+    { collectionId: "col_002", contentId: "cnt_061", sortOrder: 6 },
+    { collectionId: "col_002", contentId: "cnt_022", sortOrder: 7 },
+    // Stress Management Basics (6 sessions → 2 levels of 3)
+    { collectionId: "col_003", contentId: "cnt_120", sortOrder: 0 },
+    { collectionId: "col_003", contentId: "cnt_121", sortOrder: 1 },
+    { collectionId: "col_003", contentId: "cnt_122", sortOrder: 2 },
+    { collectionId: "col_003", contentId: "cnt_123", sortOrder: 3 },
+    { collectionId: "col_003", contentId: "cnt_124", sortOrder: 4 },
+    { collectionId: "col_003", contentId: "cnt_125", sortOrder: 5 },
     // Self-Care for Parents (editorial / featured)
     { collectionId: "col_010", contentId: "cnt_030", sortOrder: 0 },
     { collectionId: "col_010", contentId: "cnt_031", sortOrder: 1 },
@@ -1826,9 +2084,13 @@ async function seed(db2) {
     "cnt_051",
     "cnt_052",
     "cnt_060",
-    "cnt_061"
+    "cnt_061",
+    "cnt_100",
+    "cnt_101",
+    "cnt_102",
+    "cnt_103"
   ];
-  const durations = [600, 60, 120, 1200, 420, 60, 240, 2700, 1800, 1800, 1800, 1800, 900, 300];
+  const durations = [600, 60, 120, 1200, 420, 60, 240, 2700, 1800, 1800, 1800, 1800, 900, 300, 600, 480, 300, 720];
   for (let i = 0; i < 96; i++) {
     const cIdx = i % contentIds.length;
     const day = 96 - i;
