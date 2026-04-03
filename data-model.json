@@ -1,0 +1,383 @@
+{
+  "_readme": "Headspace App — Frontend Data Model v1. Dummy data for all tabs. Designed for future API mapping.",
+
+  "core_entities": {
+
+    "content": {
+      "_description": "The central entity. Every meditation, sleep story, video, or soundscape is a 'content' item. This is the single source of truth that all tabs reference.",
+      "example": {
+        "id": "cnt_001",
+        "title": "Finding Calm in Chaos",
+        "description": "A 10-minute guided meditation to help you find stillness when life feels overwhelming.",
+        "type": "meditation",
+        "category_id": "cat_stress",
+        "instructor": {
+          "id": "ins_001",
+          "name": "Sarah Mitchell",
+          "avatar_url": "https://cdn.app.com/instructors/sarah.jpg"
+        },
+        "duration_seconds": 600,
+        "thumbnail_url": "https://cdn.app.com/thumbs/cnt_001.jpg",
+        "audio_url": "https://cdn.app.com/audio/cnt_001.mp3",
+        "tags": ["stress", "beginner", "guided", "morning"],
+        "is_premium": false,
+        "difficulty": "beginner",
+        "created_at": "2026-03-15T10:00:00Z"
+      },
+      "types": ["meditation", "sleep_story", "soundscape", "breathwork", "video", "focus_music"],
+      "difficulties": ["beginner", "intermediate", "advanced"]
+    },
+
+    "category": {
+      "_description": "Groups content into browsable buckets. A content item belongs to one primary category but can appear in multiple via tags.",
+      "example": {
+        "id": "cat_stress",
+        "name": "Stress & Anxiety",
+        "slug": "stress-anxiety",
+        "icon": "wind",
+        "color": "#F47D20",
+        "description": "Techniques to manage stress and find your calm.",
+        "content_count": 48,
+        "sort_order": 1
+      }
+    },
+
+    "collection": {
+      "_description": "Curated playlists or programs. Can be editorial (staff picks), algorithmic (for you), or structured (21-day program).",
+      "example": {
+        "id": "col_001",
+        "title": "CBT for Anxiety & Depression",
+        "description": "A structured mix of mindfulness activities and practices used in therapy, proven to help you feel better.",
+        "type": "program",
+        "thumbnail_url": "https://cdn.app.com/collections/cbt.jpg",
+        "gradient_colors": ["#FF6496", "#FF9664"],
+        "content_ids": ["cnt_001", "cnt_002", "cnt_003"],
+        "total_sessions": 21,
+        "estimated_daily_minutes": 10,
+        "is_premium": true
+      },
+      "types": ["program", "playlist", "editorial", "daily_picks"]
+    },
+
+    "user": {
+      "_description": "Core user profile. Preferences live here, progress is tracked separately.",
+      "example": {
+        "id": "usr_001",
+        "name": "Samuel East",
+        "email": "samuel@example.com",
+        "avatar_url": "https://cdn.app.com/avatars/usr_001.jpg",
+        "joined_at": "2021-09-14T00:00:00Z",
+        "preferences": {
+          "reminder_time": "07:30",
+          "preferred_duration": 10,
+          "preferred_types": ["meditation", "sleep_story"],
+          "notifications_enabled": true
+        },
+        "subscription": {
+          "plan": "premium",
+          "expires_at": "2026-12-01T00:00:00Z"
+        }
+      }
+    },
+
+    "user_progress": {
+      "_description": "Tracks what a user has listened to, how far they got, and when. Powers 'continue listening', stats, and streaks.",
+      "example": {
+        "id": "prg_001",
+        "user_id": "usr_001",
+        "content_id": "cnt_001",
+        "status": "completed",
+        "progress_seconds": 600,
+        "completed_at": "2026-04-02T22:15:00Z",
+        "started_at": "2026-04-02T22:05:00Z"
+      },
+      "statuses": ["not_started", "in_progress", "completed"]
+    },
+
+    "user_stats": {
+      "_description": "Aggregated from user_progress. Can be computed on backend or cached. Displayed on profile.",
+      "example": {
+        "user_id": "usr_001",
+        "total_sessions": 96,
+        "total_minutes": 5399,
+        "avg_session_minutes": 56,
+        "current_streak_days": 0,
+        "longest_streak_days": 14,
+        "last_session_at": "2026-04-02T22:15:00Z"
+      }
+    }
+  },
+
+  "tabs": {
+
+    "today": {
+      "_description": "Personalized daily view. Everything here references core content via IDs. The 'sections' array makes the layout flexible — backend can reorder or add sections without app updates.",
+      "data": {
+        "greeting": "Good morning, Samuel",
+        "date": "2026-04-03",
+        "sections": [
+          {
+            "id": "sec_continue",
+            "type": "continue_listening",
+            "title": "Pick up where you left off",
+            "items": [
+              {
+                "content_id": "cnt_012",
+                "title": "Treat Yourself to 5 Gentle Breaths",
+                "type": "breathwork",
+                "duration_seconds": 60,
+                "progress_seconds": 30,
+                "thumbnail_url": "https://cdn.app.com/thumbs/cnt_012.jpg"
+              }
+            ]
+          },
+          {
+            "id": "sec_daily",
+            "type": "daily_essentials",
+            "title": "Daily essentials",
+            "layout": "horizontal_scroll",
+            "items": [
+              {
+                "content_id": "cnt_020",
+                "title": "How's your day so far?",
+                "type": "reflect",
+                "subtitle": "Check in and stay grounded.",
+                "gradient_colors": ["#FFB450", "#FF9664"],
+                "icon": "sparkles"
+              },
+              {
+                "content_id": "cnt_021",
+                "title": "Choice",
+                "type": "meditation",
+                "subtitle": "Today's Meditation",
+                "duration_label": "3-20 min",
+                "gradient_colors": ["#FFDC64", "#FFC850"],
+                "icon": "face.smiling"
+              },
+              {
+                "content_id": "cnt_022",
+                "title": "Slow Down",
+                "type": "sleep_story",
+                "subtitle": "The Walk",
+                "duration_label": "3-7 min",
+                "gradient_colors": ["#FF8C32", "#E05A28"],
+                "icon": "leaf.fill"
+              }
+            ]
+          },
+          {
+            "id": "sec_spring",
+            "type": "editorial",
+            "title": "Your spring reset",
+            "layout": "two_column",
+            "items": [
+              {
+                "content_id": "cnt_030",
+                "title": "Appreciation of Everyday Life",
+                "type": "video",
+                "duration_label": "1 min",
+                "thumbnail_url": "https://cdn.app.com/thumbs/cnt_030.jpg"
+              },
+              {
+                "content_id": "cnt_031",
+                "title": "Cultivating Hope for the Future",
+                "type": "video",
+                "duration_label": "4 min",
+                "thumbnail_url": "https://cdn.app.com/thumbs/cnt_031.jpg"
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    "explore": {
+      "_description": "Full library. Categories are the primary navigation. Collections surface curated content. Search hits the content entity.",
+      "data": {
+        "categories": [
+          { "id": "cat_meditate", "name": "Meditate", "icon": "circle.fill", "color": "#F47D20" },
+          { "id": "cat_sleep", "name": "Sleep", "icon": "moon.fill", "color": "#8264C8" },
+          { "id": "cat_move", "name": "Move", "icon": "forward.fill", "color": "#00A050" },
+          { "id": "cat_focus", "name": "Focus", "icon": "music.note", "color": "#3C64C8" }
+        ],
+        "featured_collection": {
+          "collection_id": "col_010",
+          "title": "Self-Care for Parents",
+          "description": "You deserve a minute. Take a brief moment for yourself.",
+          "thumbnail_url": "https://cdn.app.com/collections/parents.jpg"
+        },
+        "guided_programs": [
+          {
+            "collection_id": "col_001",
+            "title": "CBT for Anxiety & Depression",
+            "total_sessions": 21,
+            "daily_minutes": "<10 min a day",
+            "gradient_colors": ["#FF6496", "#FF9664"]
+          },
+          {
+            "collection_id": "col_002",
+            "title": "Finding Your Best Sleep",
+            "total_sessions": 18,
+            "daily_minutes": "<10 min a day",
+            "gradient_colors": ["#0064DC", "#1E8CFF"]
+          }
+        ]
+      }
+    },
+
+    "sleep_meditate": {
+      "_description": "Filtered view of content where type is sleep-related. Reuses the same content entity — just a different lens.",
+      "data": {
+        "sections": [
+          {
+            "id": "sec_tonight",
+            "type": "tonight_picks",
+            "title": "Tonight's picks",
+            "items": [
+              {
+                "content_id": "cnt_040",
+                "title": "Rain on a Tin Roof",
+                "type": "soundscape",
+                "duration_label": "45 min",
+                "thumbnail_url": "https://cdn.app.com/thumbs/cnt_040.jpg"
+              },
+              {
+                "content_id": "cnt_041",
+                "title": "The Cottage Garden",
+                "type": "sleep_story",
+                "instructor_name": "James Porter",
+                "duration_label": "30 min",
+                "thumbnail_url": "https://cdn.app.com/thumbs/cnt_041.jpg"
+              }
+            ]
+          },
+          {
+            "id": "sec_sounds",
+            "type": "soundscapes",
+            "title": "Background sounds",
+            "items": [
+              {
+                "content_id": "cnt_050",
+                "title": "Ocean Waves",
+                "type": "soundscape",
+                "duration_label": "Loop",
+                "icon": "water.waves"
+              },
+              {
+                "content_id": "cnt_051",
+                "title": "Forest Night",
+                "type": "soundscape",
+                "duration_label": "Loop",
+                "icon": "leaf.fill"
+              },
+              {
+                "content_id": "cnt_052",
+                "title": "Gentle Rain",
+                "type": "soundscape",
+                "duration_label": "Loop",
+                "icon": "cloud.rain"
+              }
+            ]
+          },
+          {
+            "id": "sec_wind_down",
+            "type": "collection",
+            "title": "Wind down routines",
+            "collection_id": "col_020",
+            "items": [
+              {
+                "content_id": "cnt_060",
+                "title": "Body Scan for Sleep",
+                "type": "meditation",
+                "duration_label": "15 min"
+              },
+              {
+                "content_id": "cnt_061",
+                "title": "Letting Go of the Day",
+                "type": "breathwork",
+                "duration_label": "5 min"
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    "luma": {
+      "_description": "AI assistant tab. Conversations are stored per-user. Suggestions are contextual (time of day, recent activity). The AI persona is calm, supportive, and mindfulness-focused.",
+      "data": {
+        "assistant": {
+          "name": "Luma",
+          "avatar_style": "warm_gradient",
+          "persona": "calm, supportive, mindfulness-focused"
+        },
+        "conversation": {
+          "id": "conv_001",
+          "user_id": "usr_001",
+          "messages": [
+            {
+              "id": "msg_001",
+              "role": "assistant",
+              "text": "Hey Samuel! Looking for some calm tonight? I noticed you enjoy rain sounds and sleepcasts.",
+              "timestamp": "2026-04-03T21:30:00Z",
+              "feedback": null
+            }
+          ]
+        },
+        "suggestions": [
+          { "id": "sug_001", "text": "I'm feeling overwhelmed" },
+          { "id": "sug_002", "text": "Help me fall asleep" },
+          { "id": "sug_003", "text": "Prepare for a conversation" },
+          { "id": "sug_004", "text": "I need a quick break" }
+        ]
+      }
+    },
+
+    "profile": {
+      "_description": "Aggregated view pulling from user, user_stats, user_progress, and saved content.",
+      "data": {
+        "user": {
+          "id": "usr_001",
+          "name": "Samuel East",
+          "avatar_url": "https://cdn.app.com/avatars/usr_001.jpg",
+          "joined_at": "2021-09-14T00:00:00Z"
+        },
+        "stats": {
+          "avg_session_minutes": 56,
+          "total_minutes": 5399,
+          "total_sessions": 96,
+          "current_streak_days": 0,
+          "longest_streak_days": 14
+        },
+        "streak": {
+          "current": 0,
+          "message": "Consistency is key. Come back to your practice at times that feel good for you.",
+          "weekly_activity": [false, true, true, false, false, false, false]
+        },
+        "saved_content_ids": ["cnt_001", "cnt_012", "cnt_040"],
+        "recent_content_ids": ["cnt_012", "cnt_030", "cnt_021"]
+      }
+    }
+  },
+
+  "relationships": {
+    "_description": "Key relationships between entities. Keep these in mind when designing the backend.",
+    "diagram": [
+      "content  --belongs_to-->  category  (many-to-one via category_id)",
+      "content  --tagged_with-->  tags  (many-to-many, simple string array for now)",
+      "content  --taught_by-->  instructor  (many-to-one, embedded for now)",
+      "collection  --contains-->  content  (many-to-many via content_ids array)",
+      "user_progress  --tracks-->  content × user  (one per user per content)",
+      "user_stats  --aggregates-->  user_progress  (computed, not stored separately early on)",
+      "conversation  --belongs_to-->  user  (one active conversation, history saved)",
+      "today.sections[].items  --references-->  content  (via content_id)"
+    ],
+    "notes": [
+      "Everything links back to 'content' via content_id — this is the backbone of the app.",
+      "Today tab sections are server-driven: the backend decides what to show and in what order.",
+      "Collections can be both curated (editorial) and auto-generated (personalized).",
+      "User progress is the key table for personalization — it powers streaks, recommendations, and 'continue listening'.",
+      "Luma conversations reference content_ids when recommending sessions, creating a link between chat and library."
+    ]
+  }
+}

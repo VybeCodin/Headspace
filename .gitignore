@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+.env
+.env.local
+bun.lock
+.DS_Store
+xcuserdata/
+*.xcuserstate
