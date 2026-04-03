@@ -4,11 +4,11 @@ import SwiftUI
 
 enum ContentType: String, Codable, CaseIterable {
     case meditation
-    case sleepStory = "sleep_story"
+    case sleepStory
     case soundscape
     case breathwork
     case video
-    case focusMusic = "focus_music"
+    case focusMusic
     case reflect
 
     var displayName: String {
@@ -29,13 +29,13 @@ enum Difficulty: String, Codable {
 }
 
 enum ProgressStatus: String, Codable {
-    case notStarted = "not_started"
-    case inProgress = "in_progress"
+    case notStarted
+    case inProgress
     case completed
 }
 
 enum CollectionType: String, Codable {
-    case program, playlist, editorial, dailyPicks = "daily_picks"
+    case program, playlist, editorial, dailyPicks
 }
 
 enum MessageRole: String, Codable {
@@ -48,11 +48,6 @@ struct Instructor: Identifiable, Codable {
     let id: String
     let name: String
     let avatarUrl: String
-
-    enum CodingKeys: String, CodingKey {
-        case id, name
-        case avatarUrl = "avatar_url"
-    }
 }
 
 struct Content: Identifiable, Codable {
@@ -70,20 +65,30 @@ struct Content: Identifiable, Codable {
     let difficulty: Difficulty?
     let createdAt: String?
 
-    enum CodingKeys: String, CodingKey {
-        case id, title, description, type, instructor, tags, difficulty
-        case categoryId = "category_id"
-        case durationSeconds = "duration_seconds"
-        case thumbnailUrl = "thumbnail_url"
-        case audioUrl = "audio_url"
-        case isPremium = "is_premium"
-        case createdAt = "created_at"
-    }
-
     var durationLabel: String {
         guard let seconds = durationSeconds else { return "" }
         let minutes = seconds / 60
         return minutes == 1 ? "1 min" : "\(minutes) min"
+    }
+
+    var asTodaySectionItem: TodaySectionItem {
+        let typeGradients: [String: [String]] = [
+            "meditation": ["#F47D20", "#FF9E50"],
+            "breathwork": ["#7B2FBE", "#C86DD7"],
+            "sleepStory": ["#2D3A8C", "#6E7BD4"],
+            "soundscape": ["#1A6B54", "#3CB89C"],
+            "reflect": ["#E85D75", "#F4A261"],
+            "video": ["#0064DC", "#1E8CFF"],
+            "focusMusic": ["#3C64C8", "#6E9EFF"],
+        ]
+        return TodaySectionItem(
+            contentId: id, title: title, type: type.rawValue,
+            subtitle: description, durationLabel: durationLabel,
+            durationSeconds: durationSeconds, progressSeconds: nil,
+            thumbnailUrl: thumbnailUrl,
+            gradientColors: typeGradients[type.rawValue] ?? ["#F47D20", "#FF9E50"],
+            icon: nil, instructorName: instructor?.name
+        )
     }
 }
 
@@ -96,12 +101,6 @@ struct Category: Identifiable, Codable {
     let description: String?
     let contentCount: Int?
     let sortOrder: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case id, name, slug, icon, color, description
-        case contentCount = "content_count"
-        case sortOrder = "sort_order"
-    }
 
     var swiftColor: Color {
         Color(hex: color)
@@ -120,15 +119,30 @@ struct ContentCollection: Identifiable, Codable {
     let estimatedDailyMinutes: Int?
     let isPremium: Bool?
 
-    enum CodingKeys: String, CodingKey {
-        case id, title, description, type
-        case thumbnailUrl = "thumbnail_url"
-        case gradientColors = "gradient_colors"
-        case contentIds = "content_ids"
-        case totalSessions = "total_sessions"
-        case estimatedDailyMinutes = "estimated_daily_minutes"
-        case isPremium = "is_premium"
+    var gradient: LinearGradient {
+        guard let colors = gradientColors, colors.count >= 2 else {
+            return LinearGradient(colors: [.gray], startPoint: .leading, endPoint: .trailing)
+        }
+        return LinearGradient(
+            colors: colors.map { Color(hex: $0) },
+            startPoint: .leading,
+            endPoint: .trailing
+        )
     }
+}
+
+struct CollectionDetail: Identifiable, Codable {
+    let id: String
+    let title: String
+    let description: String?
+    let type: CollectionType?
+    let thumbnailUrl: String?
+    let gradientColors: [String]?
+    let contentIds: [String]?
+    let totalSessions: Int?
+    let estimatedDailyMinutes: Int?
+    let isPremium: Bool?
+    let items: [Content]
 
     var gradient: LinearGradient {
         guard let colors = gradientColors, colors.count >= 2 else {
@@ -149,23 +163,11 @@ struct UserPreferences: Codable {
     let preferredDuration: Int?
     let preferredTypes: [String]?
     let notificationsEnabled: Bool
-
-    enum CodingKeys: String, CodingKey {
-        case reminderTime = "reminder_time"
-        case preferredDuration = "preferred_duration"
-        case preferredTypes = "preferred_types"
-        case notificationsEnabled = "notifications_enabled"
-    }
 }
 
 struct Subscription: Codable {
     let plan: String
     let expiresAt: String
-
-    enum CodingKeys: String, CodingKey {
-        case plan
-        case expiresAt = "expires_at"
-    }
 }
 
 struct AppUser: Identifiable, Codable {
@@ -176,12 +178,6 @@ struct AppUser: Identifiable, Codable {
     let joinedAt: String
     let preferences: UserPreferences?
     let subscription: Subscription?
-
-    enum CodingKeys: String, CodingKey {
-        case id, name, email, preferences, subscription
-        case avatarUrl = "avatar_url"
-        case joinedAt = "joined_at"
-    }
 
     var joinedDateFormatted: String {
         let formatter = ISO8601DateFormatter()
@@ -200,15 +196,6 @@ struct UserProgress: Identifiable, Codable {
     let progressSeconds: Int
     let completedAt: String?
     let startedAt: String?
-
-    enum CodingKeys: String, CodingKey {
-        case id, status
-        case userId = "user_id"
-        case contentId = "content_id"
-        case progressSeconds = "progress_seconds"
-        case completedAt = "completed_at"
-        case startedAt = "started_at"
-    }
 }
 
 struct UserStats: Codable {
@@ -217,14 +204,6 @@ struct UserStats: Codable {
     let avgSessionMinutes: Int
     let currentStreakDays: Int
     let longestStreakDays: Int
-
-    enum CodingKeys: String, CodingKey {
-        case totalSessions = "total_sessions"
-        case totalMinutes = "total_minutes"
-        case avgSessionMinutes = "avg_session_minutes"
-        case currentStreakDays = "current_streak_days"
-        case longestStreakDays = "longest_streak_days"
-    }
 }
 
 // MARK: - Today Tab
@@ -244,14 +223,9 @@ struct TodaySectionItem: Identifiable, Codable {
     let instructorName: String?
 
     enum CodingKeys: String, CodingKey {
-        case title, type, subtitle, icon
-        case contentId = "content_id"
-        case durationLabel = "duration_label"
-        case durationSeconds = "duration_seconds"
-        case progressSeconds = "progress_seconds"
-        case thumbnailUrl = "thumbnail_url"
-        case gradientColors = "gradient_colors"
-        case instructorName = "instructor_name"
+        case contentId = "id"
+        case title, type, subtitle, durationLabel, durationSeconds
+        case progressSeconds, thumbnailUrl, gradientColors, icon, instructorName
     }
 
     var gradient: LinearGradient {
@@ -273,11 +247,6 @@ struct TodaySection: Identifiable, Codable {
     let layout: String?
     let collectionId: String?
     let items: [TodaySectionItem]
-
-    enum CodingKeys: String, CodingKey {
-        case id, type, title, layout, items
-        case collectionId = "collection_id"
-    }
 }
 
 struct TodayData: Codable {
@@ -293,12 +262,6 @@ struct FeaturedCollection: Codable {
     let title: String
     let description: String
     let thumbnailUrl: String?
-
-    enum CodingKeys: String, CodingKey {
-        case title, description
-        case collectionId = "collection_id"
-        case thumbnailUrl = "thumbnail_url"
-    }
 }
 
 struct GuidedProgramSummary: Identifiable, Codable {
@@ -310,11 +273,8 @@ struct GuidedProgramSummary: Identifiable, Codable {
     let gradientColors: [String]
 
     enum CodingKeys: String, CodingKey {
-        case title
-        case collectionId = "collection_id"
-        case totalSessions = "total_sessions"
-        case dailyMinutes = "daily_minutes"
-        case gradientColors = "gradient_colors"
+        case collectionId = "id"
+        case title, totalSessions, dailyMinutes, gradientColors
     }
 
     var gradient: LinearGradient {
@@ -328,14 +288,8 @@ struct GuidedProgramSummary: Identifiable, Codable {
 
 struct ExploreData: Codable {
     let categories: [Category]
-    let featuredCollection: FeaturedCollection
+    let featuredCollection: FeaturedCollection?
     let guidedPrograms: [GuidedProgramSummary]
-
-    enum CodingKeys: String, CodingKey {
-        case categories
-        case featuredCollection = "featured_collection"
-        case guidedPrograms = "guided_programs"
-    }
 }
 
 // MARK: - Sleep & Meditate Tab
@@ -350,11 +304,6 @@ struct LumaAssistant: Codable {
     let name: String
     let avatarStyle: String
     let persona: String
-
-    enum CodingKeys: String, CodingKey {
-        case name, persona
-        case avatarStyle = "avatar_style"
-    }
 }
 
 struct ChatMessage: Identifiable, Codable {
@@ -371,11 +320,6 @@ struct Conversation: Identifiable, Codable {
     let id: String
     let userId: String
     var messages: [ChatMessage]
-
-    enum CodingKeys: String, CodingKey {
-        case id, messages
-        case userId = "user_id"
-    }
 }
 
 struct SuggestionPrompt: Identifiable, Codable {
@@ -385,7 +329,7 @@ struct SuggestionPrompt: Identifiable, Codable {
 
 struct LumaData: Codable {
     let assistant: LumaAssistant
-    var conversation: Conversation
+    var conversation: Conversation?
     let suggestions: [SuggestionPrompt]
 }
 
@@ -395,11 +339,6 @@ struct StreakData: Codable {
     let current: Int
     let message: String
     let weeklyActivity: [Bool]
-
-    enum CodingKeys: String, CodingKey {
-        case current, message
-        case weeklyActivity = "weekly_activity"
-    }
 }
 
 struct ProfileData: Codable {
@@ -408,12 +347,6 @@ struct ProfileData: Codable {
     let streak: StreakData
     let savedContentIds: [String]
     let recentContentIds: [String]
-
-    enum CodingKeys: String, CodingKey {
-        case user, stats, streak
-        case savedContentIds = "saved_content_ids"
-        case recentContentIds = "recent_content_ids"
-    }
 }
 
 // MARK: - Color Extension

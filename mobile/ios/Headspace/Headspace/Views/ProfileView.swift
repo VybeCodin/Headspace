@@ -3,30 +3,36 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(DataService.self) private var dataService
 
-    private var profile: ProfileData { dataService.profileData }
-    private var stats: UserStats { profile.stats }
-    private var user: AppUser { profile.user }
-
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                profileHeader
-                VStack(alignment: .leading, spacing: 24) {
-                    statsSection
-                    streakSection
-                    progressSection
+        Group {
+            if let profile = dataService.profileData {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        profileHeader(profile.user)
+                        VStack(alignment: .leading, spacing: 24) {
+                            statsSection(profile.stats)
+                            streakSection(profile)
+                            progressSection
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
+                        .padding(.bottom, 40)
+                    }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 24)
-                .padding(.bottom, 40)
+                .ignoresSafeArea(edges: .top)
+            } else if case .error(let msg) = dataService.profileState {
+                ErrorStateView(message: msg, retry: dataService.retryProfile)
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .background(HeadspaceTheme.background)
-        .ignoresSafeArea(edges: .top)
+        .task { await dataService.loadProfile() }
     }
 
     // MARK: - Profile Header
-    private var profileHeader: some View {
+    private func profileHeader(_ user: AppUser) -> some View {
         ZStack(alignment: .topTrailing) {
             HeadspaceTheme.orangeGradient
                 .frame(height: 260)
@@ -83,7 +89,7 @@ struct ProfileView: View {
     }
 
     // MARK: - Stats Section
-    private var statsSection: some View {
+    private func statsSection(_ stats: UserStats) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Stats")
                 .font(.system(size: 22, weight: .bold))
@@ -119,7 +125,7 @@ struct ProfileView: View {
     }
 
     // MARK: - Streak Section
-    private var streakSection: some View {
+    private func streakSection(_ profile: ProfileData) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Run Streak")
                 .font(.system(size: 22, weight: .bold))

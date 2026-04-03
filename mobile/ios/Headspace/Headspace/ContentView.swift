@@ -35,6 +35,7 @@ struct ContentView: View {
                 .tag(3)
         }
         .tint(HeadspaceTheme.primaryText)
+        .task { await dataService.loadProfile() }
     }
 }
 

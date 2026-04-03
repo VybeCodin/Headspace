@@ -4,20 +4,18 @@ struct CategoryButton: View {
     let category: Category
 
     var body: some View {
-        Button(action: {}) {
-            HStack(spacing: 10) {
-                categoryIcon
-                Text(category.name)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(HeadspaceTheme.primaryText)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(HeadspaceTheme.cardBackground)
-            )
+        HStack(spacing: 10) {
+            categoryIcon
+            Text(category.name)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(HeadspaceTheme.primaryText)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 18)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(HeadspaceTheme.cardBackground)
+        )
     }
 
     @ViewBuilder

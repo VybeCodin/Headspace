@@ -20,6 +20,11 @@ targets:
     resources:
       - path: Headspace/Assets.xcassets
       - path: Headspace/Preview Content
+    info:
+      path: Headspace/Info.plist
+      properties:
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
     settings:
       base:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES

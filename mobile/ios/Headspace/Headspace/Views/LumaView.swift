@@ -5,17 +5,27 @@ struct LumaView: View {
     @State private var messageText = ""
 
     var body: some View {
-        ZStack {
-            HeadspaceTheme.pinkGradient
-                .ignoresSafeArea()
+        Group {
+            if let data = dataService.lumaData {
+                ZStack {
+                    HeadspaceTheme.pinkGradient
+                        .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                topBar
-                chatContent
-                Spacer()
-                bottomSection
+                    VStack(spacing: 0) {
+                        topBar
+                        chatContent(data)
+                        Spacer()
+                        bottomSection(data)
+                    }
+                }
+            } else if case .error(let msg) = dataService.lumaState {
+                ErrorStateView(message: msg, retry: dataService.retryLuma)
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .task { await dataService.loadLuma() }
     }
 
     // MARK: - Top Bar
@@ -76,7 +86,7 @@ struct LumaView: View {
     }
 
     // MARK: - Chat Content
-    private var chatContent: some View {
+    private func chatContent(_ data: LumaData) -> some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 16) {
                 // Luma avatar large
@@ -85,11 +95,13 @@ struct LumaView: View {
                     .padding(.top, 8)
 
                 // Messages from data
-                ForEach(dataService.lumaData.conversation.messages) { message in
-                    if message.isFromUser {
-                        userBubble(message.text)
-                    } else {
-                        assistantBubble(message.text)
+                if let conversation = data.conversation {
+                    ForEach(conversation.messages) { message in
+                        if message.isFromUser {
+                            userBubble(message.text)
+                        } else {
+                            assistantBubble(message.text)
+                        }
                     }
                 }
 
@@ -160,19 +172,19 @@ struct LumaView: View {
     }
 
     // MARK: - Bottom Section
-    private var bottomSection: some View {
+    private func bottomSection(_ data: LumaData) -> some View {
         VStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Explore more with \(dataService.lumaData.assistant.name)")
+                Text("Explore more with \(data.assistant.name)")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(HeadspaceTheme.secondaryText)
                     .padding(.horizontal, 20)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(dataService.lumaData.suggestions) { suggestion in
+                        ForEach(data.suggestions) { suggestion in
                             SuggestionChip(text: suggestion.text) {
-                                dataService.sendMessage(suggestion.text)
+                                Task { await dataService.sendMessage(suggestion.text) }
                             }
                         }
                     }
@@ -198,8 +210,9 @@ struct LumaView: View {
 
             Button(action: {
                 guard !messageText.isEmpty else { return }
-                dataService.sendMessage(messageText)
+                let text = messageText
                 messageText = ""
+                Task { await dataService.sendMessage(text) }
             }) {
                 HStack(spacing: 6) {
                     Image(systemName: "waveform")

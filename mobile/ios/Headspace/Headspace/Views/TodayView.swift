@@ -3,33 +3,53 @@ import SwiftUI
 struct TodayView: View {
     @Environment(DataService.self) private var dataService
     @State private var selectedFilter = 0
+    @State private var selectedItem: TodaySectionItem?
+    @State private var selectedVideoItem: TodaySectionItem?
     private let filters = ["Recents", "Favorites"]
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                skyHeader
+        Group {
+            if let data = dataService.todayData {
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        skyHeader
 
-                VStack(alignment: .leading, spacing: 24) {
-                    // Greeting
-                    Text(dataService.todayData.greeting)
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(HeadspaceTheme.primaryText)
-                        .padding(.top, 16)
+                        VStack(alignment: .leading, spacing: 24) {
+                            // Greeting
+                            Text(data.greeting)
+                                .font(.system(size: 24, weight: .bold))
+                                .foregroundColor(HeadspaceTheme.primaryText)
+                                .padding(.top, 16)
 
-                    filterPills
+                            filterPills
 
-                    // Dynamic sections from data
-                    ForEach(dataService.todayData.sections) { section in
-                        sectionView(for: section)
+                            // Dynamic sections from data
+                            ForEach(data.sections) { section in
+                                sectionView(for: section)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 40)
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 40)
+                .ignoresSafeArea(edges: .top)
+            } else if case .error(let msg) = dataService.todayState {
+                ErrorStateView(message: msg, retry: dataService.retryToday)
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .background(HeadspaceTheme.background)
-        .ignoresSafeArea(edges: .top)
+        .task { await dataService.loadToday() }
+        .fullScreenCover(item: $selectedItem) { item in
+            AudioPlayerView(item: item)
+                .environment(dataService)
+        }
+        .fullScreenCover(item: $selectedVideoItem) { item in
+            VideoPlayerView(item: item)
+                .environment(dataService)
+        }
     }
 
     // MARK: - Section Router
@@ -51,52 +71,57 @@ struct TodayView: View {
     private func continueListeningSection(_ section: TodaySection) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             if let item = section.items.first {
-                HStack(spacing: 12) {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(
-                            LinearGradient(
-                                colors: [.purple.opacity(0.3), .pink.opacity(0.3)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                Button {
+                    selectedItem = item
+                } label: {
+                    HStack(spacing: 12) {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.purple.opacity(0.3), .pink.opacity(0.3)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                        .frame(width: 80, height: 80)
-                        .overlay(
-                            Circle()
-                                .fill(.purple.opacity(0.5))
-                                .frame(width: 30, height: 30)
-                        )
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Circle()
+                                    .fill(.purple.opacity(0.5))
+                                    .frame(width: 30, height: 30)
+                            )
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.title)
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(HeadspaceTheme.primaryText)
-                            .lineLimit(1)
-                        HStack(spacing: 4) {
-                            Image(systemName: "play.fill")
-                                .font(.system(size: 10))
-                            Text("\(item.subtitle ?? item.type) • \(item.durationLabel ?? "")")
-                                .font(.system(size: 13))
-                        }
-                        .foregroundColor(HeadspaceTheme.secondaryText)
-
-                        // Progress bar
-                        if let progress = item.progressSeconds, let total = item.durationSeconds, total > 0 {
-                            GeometryReader { geo in
-                                ZStack(alignment: .leading) {
-                                    Capsule().fill(Color.gray.opacity(0.2))
-                                    Capsule().fill(HeadspaceTheme.orange)
-                                        .frame(width: geo.size.width * CGFloat(progress) / CGFloat(total))
-                                }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.title)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(HeadspaceTheme.primaryText)
+                                .lineLimit(1)
+                            HStack(spacing: 4) {
+                                Image(systemName: "play.fill")
+                                    .font(.system(size: 10))
+                                Text("\(item.subtitle ?? item.type) • \(item.durationLabel ?? "")")
+                                    .font(.system(size: 13))
                             }
-                            .frame(height: 4)
-                        }
-                    }
+                            .foregroundColor(HeadspaceTheme.secondaryText)
 
-                    Spacer()
+                            // Progress bar
+                            if let progress = item.progressSeconds, let total = item.durationSeconds, total > 0 {
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        Capsule().fill(Color.gray.opacity(0.2))
+                                        Capsule().fill(HeadspaceTheme.orange)
+                                            .frame(width: geo.size.width * CGFloat(progress) / CGFloat(total))
+                                    }
+                                }
+                                .frame(height: 4)
+                            }
+                        }
+
+                        Spacer()
+                    }
+                    .padding(12)
+                    .background(RoundedRectangle(cornerRadius: 16).fill(Color.white))
                 }
-                .padding(12)
-                .background(RoundedRectangle(cornerRadius: 16).fill(Color.white))
+                .buttonStyle(.plain)
             }
         }
     }
@@ -111,7 +136,10 @@ struct TodayView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(section.items) { item in
-                        DailyEssentialCard(item: item)
+                        Button { selectedVideoItem = item } label: {
+                            DailyEssentialCard(item: item)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -127,7 +155,10 @@ struct TodayView: View {
 
             HStack(spacing: 12) {
                 ForEach(section.items) { item in
-                    EditorialCard(item: item)
+                    Button { selectedVideoItem = item } label: {
+                        EditorialCard(item: item)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }
