@@ -5,7 +5,7 @@ var __export = (target, all) => {
 };
 
 // src/serverless.ts
-import { handle } from "hono/vercel";
+import { getRequestListener } from "@hono/node-server";
 
 // src/app.ts
 import { Hono as Hono13 } from "hono";
@@ -1886,11 +1886,11 @@ async function seed(db2) {
 var db = createDb();
 var seedPromise = seed(db);
 var app = createApp(db);
-var handler = handle(app);
-async function serverless_default(req, ctx) {
+var listener = getRequestListener(app.fetch);
+async function handler(req, res) {
   await seedPromise;
-  return handler(req, ctx);
+  return listener(req, res);
 }
 export {
-  serverless_default as default
+  handler as default
 };

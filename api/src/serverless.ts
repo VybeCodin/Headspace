@@ -1,4 +1,4 @@
-import { handle } from "hono/vercel";
+import { getRequestListener } from "@hono/node-server";
 import { createApp } from "./app";
 import { createDb } from "./db/index";
 import { seed } from "./db/seed";
@@ -7,9 +7,9 @@ const db = createDb();
 const seedPromise = seed(db);
 const app = createApp(db);
 
-const handler = handle(app);
+const listener = getRequestListener(app.fetch);
 
-export default async function (req: Request, ctx: any) {
+export default async function handler(req: any, res: any) {
   await seedPromise;
-  return handler(req, ctx);
+  return listener(req, res);
 }
