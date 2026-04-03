@@ -24,8 +24,36 @@ struct TodayView: View {
                             filterPills
 
                             // Dynamic sections from data
-                            ForEach(data.sections) { section in
-                                sectionView(for: section)
+                            if selectedFilter == 1 {
+                                let favSections = data.sections.compactMap { section -> TodaySection? in
+                                    let filtered = section.items.filter { dataService.savedContentIds.contains($0.contentId) }
+                                    guard !filtered.isEmpty else { return nil }
+                                    return TodaySection(id: section.id, type: section.type, title: section.title, layout: section.layout, collectionId: section.collectionId, items: filtered)
+                                }
+                                if favSections.isEmpty {
+                                    VStack(spacing: 12) {
+                                        Image(systemName: "heart")
+                                            .font(.system(size: 40))
+                                            .foregroundColor(HeadspaceTheme.secondaryText)
+                                        Text("No favorites yet")
+                                            .font(.system(size: 17, weight: .semibold))
+                                            .foregroundColor(HeadspaceTheme.primaryText)
+                                        Text("Tap the heart icon on any session to save it here.")
+                                            .font(.system(size: 15))
+                                            .foregroundColor(HeadspaceTheme.secondaryText)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 60)
+                                } else {
+                                    ForEach(favSections) { section in
+                                        sectionView(for: section)
+                                    }
+                                }
+                            } else {
+                                ForEach(data.sections) { section in
+                                    sectionView(for: section)
+                                }
                             }
                         }
                         .padding(.horizontal, 20)
@@ -40,7 +68,7 @@ struct TodayView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(HeadspaceTheme.background)
+        .background(HeadspaceTheme.background.ignoresSafeArea())
         .task { await dataService.loadToday() }
         .fullScreenCover(item: $selectedItem) { item in
             AudioPlayerView(item: item)

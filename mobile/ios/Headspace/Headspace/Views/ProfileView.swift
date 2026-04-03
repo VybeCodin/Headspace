@@ -27,7 +27,7 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .background(HeadspaceTheme.background)
+        .background(HeadspaceTheme.background.ignoresSafeArea())
         .task { await dataService.loadProfile() }
     }
 

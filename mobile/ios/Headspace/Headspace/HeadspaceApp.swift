@@ -8,6 +8,7 @@ struct HeadspaceApp: App {
         WindowGroup {
             ContentView()
                 .environment(dataService)
+                .background(HeadspaceTheme.background.ignoresSafeArea())
         }
     }
 }

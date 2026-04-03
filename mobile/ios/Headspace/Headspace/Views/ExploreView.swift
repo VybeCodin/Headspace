@@ -50,7 +50,7 @@ struct ExploreView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
-            .background(HeadspaceTheme.background)
+            .background(HeadspaceTheme.background.ignoresSafeArea())
             .task { await dataService.loadExplore() }
             .onChange(of: searchText) { _, query in
                 Task { await performSearch(query) }
@@ -257,13 +257,6 @@ struct ExploreView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 8)
-        .padding(.horizontal, -20)
-        .padding(.horizontal, 20)
-        .background(
-            Rectangle()
-                .fill(HeadspaceTheme.sectionBackground)
-                .padding(.horizontal, -20)
-        )
     }
 }
 

@@ -349,6 +349,14 @@ struct ProfileData: Codable {
     let recentContentIds: [String]
 }
 
+// MARK: - Saved Content
+
+struct SavedItem: Codable {
+    let userId: String
+    let contentId: String
+    let savedAt: String
+}
+
 // MARK: - Color Extension
 
 extension Color {

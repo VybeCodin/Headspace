@@ -9,12 +9,15 @@ struct CategoryDetailView: View {
     @State private var selectedItem: Content?
     @State private var selectedVideoItem: Content?
 
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topLeading) {
             HeadspaceTheme.background.ignoresSafeArea()
 
             if isLoading {
                 ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = errorMessage {
                 VStack(spacing: 12) {
                     Text(error)
@@ -25,6 +28,7 @@ struct CategoryDetailView: View {
                         Task { await loadItems() }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -49,9 +53,24 @@ struct CategoryDetailView: View {
                         .padding(.bottom, 40)
                     }
                 }
+                .ignoresSafeArea(edges: .top)
             }
+
+            // Custom back button
+            Button { dismiss() } label: {
+                Circle()
+                    .fill(Color.black.opacity(0.3))
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                    )
+            }
+            .padding(.top, 54)
+            .padding(.leading, 16)
         }
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .task { await loadItems() }
         .fullScreenCover(item: $selectedItem) { item in
             AudioPlayerView(item: item.asTodaySectionItem)
@@ -67,11 +86,7 @@ struct CategoryDetailView: View {
 
     private var categoryHeader: some View {
         ZStack {
-            LinearGradient(
-                colors: [category.swiftColor, category.swiftColor.opacity(0.6)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            category.swiftColor
 
             // Decorative circles
             Circle()
@@ -120,9 +135,9 @@ struct CategoryDetailView: View {
                     )
                     .padding(.top, 4)
             }
-            .padding(.vertical, 36)
+            .padding(.top, 100)
+            .padding(.bottom, 36)
         }
-        .frame(height: 260)
         .clipShape(
             UnevenRoundedRectangle(
                 bottomLeadingRadius: 28,

@@ -76,6 +76,20 @@ actor APIClient {
         try await get("\(baseURL)/users/\(userId)/profile")
     }
 
+    // MARK: - Saved Content
+
+    func fetchSavedContent() async throws -> [SavedItem] {
+        try await get("\(baseURL)/users/\(userId)/saved")
+    }
+
+    func saveContent(contentId: String) async throws -> SavedItem {
+        try await post("\(baseURL)/users/\(userId)/saved", body: ["contentId": contentId])
+    }
+
+    func unsaveContent(contentId: String) async throws {
+        try await delete("\(baseURL)/users/\(userId)/saved/\(contentId)")
+    }
+
     // MARK: - Generic Helpers
 
     private func get<T: Decodable>(_ urlString: String) async throws -> T {
@@ -98,6 +112,16 @@ actor APIClient {
         let (data, response) = try await session.data(for: request)
         try validate(response)
         return try decoder.decode(T.self, from: data)
+    }
+
+    private func delete(_ urlString: String) async throws {
+        guard let url = URL(string: urlString) else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        let (_, response) = try await session.data(for: request)
+        try validate(response)
     }
 
     private func validate(_ response: URLResponse) throws {

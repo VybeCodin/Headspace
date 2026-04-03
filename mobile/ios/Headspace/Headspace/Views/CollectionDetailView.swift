@@ -95,12 +95,15 @@ struct CollectionDetailView: View {
 
     // MARK: - Body
 
+    @Environment(\.dismiss) private var dismiss
+
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topLeading) {
             HeadspaceTheme.background.ignoresSafeArea()
 
             if isLoading {
                 ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = errorMessage {
                 VStack(spacing: 12) {
                     Text(error)
@@ -111,6 +114,7 @@ struct CollectionDetailView: View {
                         Task { await loadDetail() }
                     }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let detail {
                 ZStack(alignment: .bottom) {
                     ScrollView(showsIndicators: false) {
@@ -127,14 +131,29 @@ struct CollectionDetailView: View {
                             .padding(.bottom, nextSession != nil ? 100 : 24)
                         }
                     }
+                    .ignoresSafeArea(edges: .top)
 
                     if let next = nextSession {
                         nextSessionButton(next)
                     }
                 }
             }
+
+            // Custom back button
+            Button { dismiss() } label: {
+                Circle()
+                    .fill(Color.black.opacity(0.3))
+                    .frame(width: 40, height: 40)
+                    .overlay(
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.white)
+                    )
+            }
+            .padding(.top, 54)
+            .padding(.leading, 16)
         }
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarHidden(true)
         .task {
             await loadDetail()
             await dataService.loadUserProgress()
@@ -220,7 +239,8 @@ struct CollectionDetailView: View {
                     .padding(.top, 4)
                 }
             }
-            .padding(.vertical, 36)
+            .padding(.top, 100)
+            .padding(.bottom, 36)
         }
         .clipShape(
             UnevenRoundedRectangle(

@@ -42,7 +42,15 @@ struct VideoPlayerView: View {
                         .tracking(1.5)
                         .foregroundStyle(.white.opacity(0.7))
                     Spacer()
-                    Color.clear.frame(width: 32, height: 32)
+                    Button {
+                        Task { await dataService.toggleFavorite(contentId: item.contentId) }
+                    } label: {
+                        Image(systemName: dataService.savedContentIds.contains(item.contentId) ? "heart.fill" : "heart")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(dataService.savedContentIds.contains(item.contentId) ? .red : .white)
+                            .frame(width: 32, height: 32)
+                            .background(.ultraThinMaterial, in: Circle())
+                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 8)

@@ -44,8 +44,9 @@ struct LumaView: View {
 
             Spacer()
 
-            // Luma avatar (small)
-            lumaAvatarSmall
+            Text("Luma")
+                .font(.system(size: 17, weight: .bold))
+                .foregroundColor(HeadspaceTheme.primaryText)
 
             Spacer()
 
@@ -194,17 +195,16 @@ struct LumaView: View {
 
             inputBar
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, 16)
         .background(
-            Color.white
+            HeadspaceTheme.background
                 .cornerRadius(24, corners: [.topLeft, .topRight])
-                .ignoresSafeArea(edges: .bottom)
         )
     }
 
     private var inputBar: some View {
         HStack(spacing: 12) {
-            TextField("Share your thoughts...", text: $messageText)
+            TextField("Share your thoughts...", text: $messageText, prompt: Text("Share your thoughts...").foregroundColor(HeadspaceTheme.secondaryText))
                 .font(.system(size: 16))
                 .foregroundColor(HeadspaceTheme.primaryText)
 
@@ -226,8 +226,14 @@ struct LumaView: View {
                 .background(Capsule().fill(HeadspaceTheme.primaryText))
             }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 28)
+                .stroke(Color.gray.opacity(0.25), lineWidth: 1)
+                .background(RoundedRectangle(cornerRadius: 28).fill(HeadspaceTheme.cardBackground))
+        )
+        .padding(.horizontal, 16)
     }
 }
 

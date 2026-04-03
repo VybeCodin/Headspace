@@ -29,6 +29,9 @@ final class DataService {
     // MARK: - User Progress
     var progressByContentId: [String: UserProgress] = [:]
 
+    // MARK: - Saved / Favorites
+    var savedContentIds: Set<String> = []
+
     private let api = APIClient.shared
 
     // MARK: - Lookups
@@ -108,6 +111,35 @@ final class DataService {
         }
     }
 
+    // MARK: - Saved Content
+
+    func loadSavedContent() async {
+        do {
+            let items = try await api.fetchSavedContent()
+            savedContentIds = Set(items.map(\.contentId))
+        } catch {
+            // Silently fail — favorites are supplementary
+        }
+    }
+
+    func toggleFavorite(contentId: String) async {
+        if savedContentIds.contains(contentId) {
+            savedContentIds.remove(contentId)
+            do {
+                try await api.unsaveContent(contentId: contentId)
+            } catch {
+                savedContentIds.insert(contentId)
+            }
+        } else {
+            savedContentIds.insert(contentId)
+            do {
+                _ = try await api.saveContent(contentId: contentId)
+            } catch {
+                savedContentIds.remove(contentId)
+            }
+        }
+    }
+
     // MARK: - Load Methods
 
     func loadToday() async {
@@ -149,6 +181,7 @@ final class DataService {
         do {
             profileData = try await api.fetchProfile()
             profileState = .loaded
+            await loadSavedContent()
         } catch {
             profileState = .error(error.localizedDescription)
         }
