@@ -29,6 +29,7 @@ struct DailyEssentialCard: View {
                         .font(.system(size: 10))
                     Text(item.subtitle ?? item.type.capitalized)
                         .font(.system(size: 13))
+                        .lineLimit(2)
                 }
                 .foregroundColor(HeadspaceTheme.secondaryText)
 

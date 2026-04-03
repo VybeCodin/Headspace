@@ -3,7 +3,7 @@ import Foundation
 actor APIClient {
     static let shared = APIClient()
 
-    private let baseURL = "http://localhost:3000/api"
+    private let baseURL = "https://headspace-api.vercel.app/api"
     private let userId = "usr_001"
     private let session: URLSession
     private let decoder: JSONDecoder
