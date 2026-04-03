@@ -1,3 +1,4 @@
+import { serve } from "@hono/node-server";
 import { createApp } from "./app";
 import { createDb } from "./db/index";
 import { seed } from "./db/seed";
@@ -9,9 +10,12 @@ await seed(db);
 
 const app = createApp(db);
 
-console.log(`Headspace API running on http://localhost:${port}`);
+// Vercel serverless: export the app
+export default app;
 
-export default {
-  port,
-  fetch: app.fetch,
-};
+// Local dev: start Node.js HTTP server
+if (!process.env.VERCEL) {
+  serve({ fetch: app.fetch, port }, () => {
+    console.log(`Headspace API running on http://localhost:${port}`);
+  });
+}

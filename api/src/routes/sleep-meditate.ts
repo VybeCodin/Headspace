@@ -16,14 +16,14 @@ export function sleepMeditateRoutes(db: AppDatabase) {
     responses: {
       200: { description: "Sleep & meditate feed", content: { "application/json": { schema: resolver(SleepMeditateSchema) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     // Section 1: Tonight's picks (sleep stories + soundscapes with duration)
     const tonightIds = ["cnt_040", "cnt_041"];
-    const tonightItems = tonightIds.map((id) => {
-      const cnt = db.select().from(schema.content).where(eq(schema.content.id, id)).get();
+    const tonightItems = await Promise.all(tonightIds.map(async (id) => {
+      const cnt = await db.select().from(schema.content).where(eq(schema.content.id, id)).get();
       let instructorName: string | undefined;
       if (cnt?.instructorId) {
-        const inst = db
+        const inst = await db
           .select()
           .from(schema.instructors)
           .where(eq(schema.instructors.id, cnt.instructorId))
@@ -40,12 +40,12 @@ export function sleepMeditateRoutes(db: AppDatabase) {
         thumbnailUrl: cnt?.thumbnailUrl ?? undefined,
         instructorName,
       };
-    });
+    }));
 
     // Section 2: Background sounds
     const soundIds = ["cnt_050", "cnt_051", "cnt_052"];
-    const soundItems = soundIds.map((id) => {
-      const cnt = db.select().from(schema.content).where(eq(schema.content.id, id)).get();
+    const soundItems = await Promise.all(soundIds.map(async (id) => {
+      const cnt = await db.select().from(schema.content).where(eq(schema.content.id, id)).get();
       return {
         id: cnt?.id ?? id,
         title: cnt?.title ?? "",
@@ -55,12 +55,12 @@ export function sleepMeditateRoutes(db: AppDatabase) {
         durationSeconds: cnt?.durationSeconds ?? undefined,
         thumbnailUrl: cnt?.thumbnailUrl ?? undefined,
       };
-    });
+    }));
 
     // Section 3: Wind down routines (collection col_020)
     const windDownIds = ["cnt_060", "cnt_061"];
-    const windDownItems = windDownIds.map((id) => {
-      const cnt = db.select().from(schema.content).where(eq(schema.content.id, id)).get();
+    const windDownItems = await Promise.all(windDownIds.map(async (id) => {
+      const cnt = await db.select().from(schema.content).where(eq(schema.content.id, id)).get();
       return {
         id: cnt?.id ?? id,
         title: cnt?.title ?? "",
@@ -70,7 +70,7 @@ export function sleepMeditateRoutes(db: AppDatabase) {
         durationSeconds: cnt?.durationSeconds ?? undefined,
         thumbnailUrl: cnt?.thumbnailUrl ?? undefined,
       };
-    });
+    }));
 
     return c.json({
       sections: [

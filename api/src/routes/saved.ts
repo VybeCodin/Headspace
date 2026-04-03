@@ -17,10 +17,10 @@ export function savedRoutes(db: AppDatabase) {
     responses: {
       200: { description: "Saved items", content: { "application/json": { schema: resolver(z.array(SavedItemSchema)) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const userId = c.req.param("id");
 
-    const saved = db
+    const saved = await db
       .select()
       .from(schema.savedContent)
       .where(eq(schema.savedContent.userId, userId))
@@ -49,7 +49,7 @@ export function savedRoutes(db: AppDatabase) {
     const { contentId } = body;
 
     // Check if already saved
-    const existing = db
+    const existing = await db
       .select()
       .from(schema.savedContent)
       .where(
@@ -65,7 +65,7 @@ export function savedRoutes(db: AppDatabase) {
     }
 
     const savedAt = new Date().toISOString().split("T")[0];
-    db.insert(schema.savedContent)
+    await db.insert(schema.savedContent)
       .values({ userId, contentId, savedAt })
       .run();
 
@@ -80,11 +80,11 @@ export function savedRoutes(db: AppDatabase) {
       200: { description: "Removed", content: { "application/json": { schema: resolver(SuccessSchema) } } },
       404: { description: "Not found", content: { "application/json": { schema: resolver(ErrorSchema) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const userId = c.req.param("id");
     const contentId = c.req.param("contentId");
 
-    const existing = db
+    const existing = await db
       .select()
       .from(schema.savedContent)
       .where(
@@ -97,7 +97,7 @@ export function savedRoutes(db: AppDatabase) {
 
     if (!existing) throw new NotFoundError("Saved content", contentId);
 
-    db.delete(schema.savedContent)
+    await db.delete(schema.savedContent)
       .where(
         and(
           eq(schema.savedContent.userId, userId),

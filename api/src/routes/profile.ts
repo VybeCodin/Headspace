@@ -18,10 +18,10 @@ export function profileRoutes(db: AppDatabase) {
       200: { description: "User profile", content: { "application/json": { schema: resolver(ProfileSchema) } } },
       404: { description: "Not found", content: { "application/json": { schema: resolver(ErrorSchema) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const userId = c.req.param("id");
 
-    const user = db
+    const user = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, userId))
@@ -29,11 +29,13 @@ export function profileRoutes(db: AppDatabase) {
 
     if (!user) throw new NotFoundError("User", userId);
 
-    const stats = computeStats(db, userId);
-    const streak = computeStreak(db, userId);
+    const [stats, streak] = await Promise.all([
+      computeStats(db, userId),
+      computeStreak(db, userId),
+    ]);
 
     // Saved content IDs
-    const saved = db
+    const saved = await db
       .select()
       .from(schema.savedContent)
       .where(eq(schema.savedContent.userId, userId))
@@ -41,7 +43,7 @@ export function profileRoutes(db: AppDatabase) {
     const savedContentIds = saved.map((s) => s.contentId);
 
     // Recent content IDs
-    const recentContentIds = getRecentContentIds(db, userId, 5);
+    const recentContentIds = await getRecentContentIds(db, userId, 5);
 
     return c.json({
       user: {

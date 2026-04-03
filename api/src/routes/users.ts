@@ -18,9 +18,9 @@ export function usersRoutes(db: AppDatabase) {
       200: { description: "User detail", content: { "application/json": { schema: resolver(UserSchema) } } },
       404: { description: "Not found", content: { "application/json": { schema: resolver(ErrorSchema) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const id = c.req.param("id");
-    const user = db
+    const user = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, id))
@@ -40,7 +40,7 @@ export function usersRoutes(db: AppDatabase) {
     },
   }), async (c) => {
     const id = c.req.param("id");
-    const user = db
+    const user = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, id))
@@ -59,14 +59,14 @@ export function usersRoutes(db: AppDatabase) {
       updates.notificationsEnabled = body.notificationsEnabled;
 
     if (Object.keys(updates).length > 0) {
-      db.update(schema.users).set(updates).where(eq(schema.users.id, id)).run();
+      await db.update(schema.users).set(updates).where(eq(schema.users.id, id)).run();
     }
 
-    const updated = db
+    const updated = (await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, id))
-      .get()!;
+      .get())!;
     return c.json(formatUser(updated));
   });
 

@@ -16,29 +16,31 @@ export function categoriesRoutes(db: AppDatabase) {
     responses: {
       200: { description: "Category list", content: { "application/json": { schema: resolver(z.array(CategorySchema)) } } },
     },
-  }), (c) => {
-    const cats = db.select().from(schema.categories).all();
+  }), async (c) => {
+    const cats = await db.select().from(schema.categories).all();
 
-    const result = cats
-      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-      .map((cat) => {
-        const contentCount = db
-          .select({ count: sql<number>`count(*)` })
-          .from(schema.content)
-          .where(eq(schema.content.categoryId, cat.id))
-          .get();
+    const result = await Promise.all(
+      cats
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .map(async (cat) => {
+          const contentCount = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(schema.content)
+            .where(eq(schema.content.categoryId, cat.id))
+            .get();
 
-        return {
-          id: cat.id,
-          name: cat.name,
-          slug: cat.slug,
-          icon: cat.icon,
-          color: cat.color,
-          description: cat.description,
-          contentCount: contentCount?.count ?? 0,
-          sortOrder: cat.sortOrder,
-        };
-      });
+          return {
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            icon: cat.icon,
+            color: cat.color,
+            description: cat.description,
+            contentCount: contentCount?.count ?? 0,
+            sortOrder: cat.sortOrder,
+          };
+        })
+    );
 
     return c.json(result);
   });

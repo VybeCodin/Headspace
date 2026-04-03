@@ -31,8 +31,8 @@ export function parseJsonArray(json: string | null): string[] {
   }
 }
 
-export function computeStats(db: AppDatabase, userId: string) {
-  const progress = db
+export async function computeStats(db: AppDatabase, userId: string) {
+  const progress = await db
     .select()
     .from(schema.userProgress)
     .where(
@@ -112,8 +112,8 @@ export function computeStats(db: AppDatabase, userId: string) {
   };
 }
 
-export function computeStreak(db: AppDatabase, userId: string) {
-  const stats = computeStats(db, userId);
+export async function computeStreak(db: AppDatabase, userId: string) {
+  const stats = await computeStats(db, userId);
   const current = stats.currentStreakDays;
 
   let message: string;
@@ -131,7 +131,7 @@ export function computeStreak(db: AppDatabase, userId: string) {
   const today = new Date();
   const weeklyActivity: boolean[] = [];
 
-  const progress = db
+  const progress = await db
     .select()
     .from(schema.userProgress)
     .where(
@@ -164,8 +164,8 @@ export function formatDuration(seconds: number | null): string | null {
   return `${mins} min`;
 }
 
-export function getRecentContentIds(db: AppDatabase, userId: string, limit = 5): string[] {
-  const recent = db
+export async function getRecentContentIds(db: AppDatabase, userId: string, limit = 5): Promise<string[]> {
+  const recent = await db
     .select({ contentId: schema.userProgress.contentId })
     .from(schema.userProgress)
     .where(eq(schema.userProgress.userId, userId))

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { describeRoute, resolver } from "hono-openapi";
 import type { AppDatabase } from "../db/index";
 import * as schema from "../db/schema";
@@ -17,10 +17,10 @@ export function lumaRoutes(db: AppDatabase) {
       200: { description: "Conversation state", content: { "application/json": { schema: resolver(LumaConversationSchema) } } },
       404: { description: "Not found", content: { "application/json": { schema: resolver(ErrorSchema) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const userId = c.req.param("id");
 
-    const user = db
+    const user = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, userId))
@@ -28,7 +28,7 @@ export function lumaRoutes(db: AppDatabase) {
     if (!user) throw new NotFoundError("User", userId);
 
     // Get or create conversation
-    let conversation = db
+    let conversation = await db
       .select()
       .from(schema.conversations)
       .where(eq(schema.conversations.userId, userId))
@@ -36,14 +36,14 @@ export function lumaRoutes(db: AppDatabase) {
 
     let messages: any[] = [];
     if (conversation) {
-      messages = db
+      messages = await db
         .select()
         .from(schema.messages)
         .where(eq(schema.messages.conversationId, conversation.id))
         .all();
     }
 
-    const suggestions = db.select().from(schema.suggestionPrompts).all();
+    const suggestions = await db.select().from(schema.suggestionPrompts).all();
 
     return c.json({
       assistant: {
@@ -81,7 +81,7 @@ export function lumaRoutes(db: AppDatabase) {
     const body = await c.req.json();
     const userText = body.text;
 
-    const user = db
+    const user = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, userId))
@@ -89,7 +89,7 @@ export function lumaRoutes(db: AppDatabase) {
     if (!user) throw new NotFoundError("User", userId);
 
     // Get or create conversation
-    let conversation = db
+    let conversation = await db
       .select()
       .from(schema.conversations)
       .where(eq(schema.conversations.userId, userId))
@@ -97,17 +97,17 @@ export function lumaRoutes(db: AppDatabase) {
 
     if (!conversation) {
       const convId = `conv_${Date.now()}`;
-      db.insert(schema.conversations).values({ id: convId, userId }).run();
-      conversation = db
+      await db.insert(schema.conversations).values({ id: convId, userId }).run();
+      conversation = (await db
         .select()
         .from(schema.conversations)
         .where(eq(schema.conversations.id, convId))
-        .get()!;
+        .get())!;
     }
 
     // Insert user message
     const userMsgId = `msg_${Date.now()}_u`;
-    db.insert(schema.messages)
+    await db.insert(schema.messages)
       .values({
         id: userMsgId,
         conversationId: conversation.id,
@@ -121,7 +121,7 @@ export function lumaRoutes(db: AppDatabase) {
     const reply = generateMockReply(userText, user.name.split(" ")[0]);
 
     const replyMsgId = `msg_${Date.now()}_a`;
-    db.insert(schema.messages)
+    await db.insert(schema.messages)
       .values({
         id: replyMsgId,
         conversationId: conversation.id,
@@ -131,11 +131,11 @@ export function lumaRoutes(db: AppDatabase) {
       })
       .run();
 
-    const replyMsg = db
+    const replyMsg = (await db
       .select()
       .from(schema.messages)
       .where(eq(schema.messages.id, replyMsgId))
-      .get()!;
+      .get())!;
 
     return c.json(
       {

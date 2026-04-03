@@ -17,11 +17,11 @@ export function progressRoutes(db: AppDatabase) {
     responses: {
       200: { description: "Progress list", content: { "application/json": { schema: resolver(z.array(ProgressSchema)) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const userId = c.req.param("id");
     const status = c.req.query("status");
 
-    let rows = db
+    let rows = await db
       .select()
       .from(schema.userProgress)
       .where(eq(schema.userProgress.userId, userId))
@@ -46,7 +46,7 @@ export function progressRoutes(db: AppDatabase) {
     const { contentId, progressSeconds } = body;
 
     // Check if progress exists
-    const existing = db
+    const existing = await db
       .select()
       .from(schema.userProgress)
       .where(
@@ -59,7 +59,7 @@ export function progressRoutes(db: AppDatabase) {
 
     if (existing) {
       // Update existing
-      const content = db
+      const content = await db
         .select()
         .from(schema.content)
         .where(eq(schema.content.id, contentId))
@@ -70,7 +70,7 @@ export function progressRoutes(db: AppDatabase) {
           ? "completed"
           : "inProgress";
 
-      db.update(schema.userProgress)
+      await db.update(schema.userProgress)
         .set({
           progressSeconds,
           status: newStatus,
@@ -79,17 +79,17 @@ export function progressRoutes(db: AppDatabase) {
         .where(eq(schema.userProgress.id, existing.id))
         .run();
 
-      const updated = db
+      const updated = (await db
         .select()
         .from(schema.userProgress)
         .where(eq(schema.userProgress.id, existing.id))
-        .get()!;
+        .get())!;
       return c.json(formatProgress(updated));
     }
 
     // Create new
     const id = `prog_${Date.now()}`;
-    const content = db
+    const content = await db
       .select()
       .from(schema.content)
       .where(eq(schema.content.id, contentId))
@@ -102,7 +102,7 @@ export function progressRoutes(db: AppDatabase) {
         ? "inProgress"
         : "notStarted";
 
-    db.insert(schema.userProgress)
+    await db.insert(schema.userProgress)
       .values({
         id,
         userId,
@@ -114,11 +114,11 @@ export function progressRoutes(db: AppDatabase) {
       })
       .run();
 
-    const created = db
+    const created = (await db
       .select()
       .from(schema.userProgress)
       .where(eq(schema.userProgress.id, id))
-      .get()!;
+      .get())!;
     return c.json(formatProgress(created), 201);
   });
 
@@ -135,7 +135,7 @@ export function progressRoutes(db: AppDatabase) {
     const contentId = c.req.param("contentId");
     const body = await c.req.json();
 
-    const existing = db
+    const existing = await db
       .select()
       .from(schema.userProgress)
       .where(
@@ -158,17 +158,17 @@ export function progressRoutes(db: AppDatabase) {
     }
 
     if (Object.keys(updates).length > 0) {
-      db.update(schema.userProgress)
+      await db.update(schema.userProgress)
         .set(updates)
         .where(eq(schema.userProgress.id, existing.id))
         .run();
     }
 
-    const updated = db
+    const updated = (await db
       .select()
       .from(schema.userProgress)
       .where(eq(schema.userProgress.id, existing.id))
-      .get()!;
+      .get())!;
     return c.json(formatProgress(updated));
   });
 

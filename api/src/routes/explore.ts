@@ -16,32 +16,34 @@ export function exploreRoutes(db: AppDatabase) {
     responses: {
       200: { description: "Explore feed", content: { "application/json": { schema: resolver(ExploreSchema) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     // Categories with content count
-    const cats = db.select().from(schema.categories).all();
-    const categories = cats
-      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-      .map((cat) => {
-        const contentCount = db
-          .select({ count: sql<number>`count(*)` })
-          .from(schema.content)
-          .where(eq(schema.content.categoryId, cat.id))
-          .get();
+    const cats = await db.select().from(schema.categories).all();
+    const categories = await Promise.all(
+      cats
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .map(async (cat) => {
+          const contentCount = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(schema.content)
+            .where(eq(schema.content.categoryId, cat.id))
+            .get();
 
-        return {
-          id: cat.id,
-          name: cat.name,
-          slug: cat.slug,
-          icon: cat.icon,
-          color: cat.color,
-          description: cat.description,
-          contentCount: contentCount?.count ?? 0,
-          sortOrder: cat.sortOrder,
-        };
-      });
+          return {
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            icon: cat.icon,
+            color: cat.color,
+            description: cat.description,
+            contentCount: contentCount?.count ?? 0,
+            sortOrder: cat.sortOrder,
+          };
+        })
+    );
 
     // Featured collection (editorial type)
-    const featured = db
+    const featured = await db
       .select()
       .from(schema.collections)
       .where(eq(schema.collections.type, "editorial"))
@@ -57,7 +59,7 @@ export function exploreRoutes(db: AppDatabase) {
       : null;
 
     // Guided programs
-    const programs = db
+    const programs = await db
       .select()
       .from(schema.collections)
       .where(eq(schema.collections.type, "program"))

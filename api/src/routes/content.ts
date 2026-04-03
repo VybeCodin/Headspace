@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq, like, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { describeRoute, resolver } from "hono-openapi";
 import { z } from "zod";
 import type { AppDatabase } from "../db/index";
@@ -18,10 +18,10 @@ export function contentRoutes(db: AppDatabase) {
     responses: {
       200: { description: "Content list", content: { "application/json": { schema: resolver(z.array(ContentSchema)) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const { type, category, tag, difficulty, isPremium } = c.req.query();
 
-    let rows = db.select().from(schema.content).all();
+    let rows = await db.select().from(schema.content).all();
 
     if (type) rows = rows.filter((r) => r.type === type);
     if (category) rows = rows.filter((r) => r.categoryId === category);
@@ -32,7 +32,7 @@ export function contentRoutes(db: AppDatabase) {
       rows = rows.filter((r) => r.isPremium === premium);
     }
 
-    const items = rows.map((r) => formatContent(r, db));
+    const items = await Promise.all(rows.map((r) => formatContent(r, db)));
     return c.json(items);
   });
 
@@ -43,12 +43,12 @@ export function contentRoutes(db: AppDatabase) {
     responses: {
       200: { description: "Search results", content: { "application/json": { schema: resolver(z.array(ContentSchema)) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const q = c.req.query("q");
     if (!q) return c.json([]);
 
     const lower = q.toLowerCase();
-    const rows = db.select().from(schema.content).all();
+    const rows = await db.select().from(schema.content).all();
     const filtered = rows.filter(
       (r) =>
         r.title.toLowerCase().includes(lower) ||
@@ -56,7 +56,7 @@ export function contentRoutes(db: AppDatabase) {
         parseTags(r.tags).some((t) => t.toLowerCase().includes(lower))
     );
 
-    return c.json(filtered.map((r) => formatContent(r, db)));
+    return c.json(await Promise.all(filtered.map((r) => formatContent(r, db))));
   });
 
   // GET /api/content/:id
@@ -67,25 +67,25 @@ export function contentRoutes(db: AppDatabase) {
       200: { description: "Content detail", content: { "application/json": { schema: resolver(ContentSchema) } } },
       404: { description: "Not found", content: { "application/json": { schema: resolver(ErrorSchema) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const id = c.req.param("id");
-    const row = db
+    const row = await db
       .select()
       .from(schema.content)
       .where(eq(schema.content.id, id))
       .get();
 
     if (!row) throw new NotFoundError("Content", id);
-    return c.json(formatContent(row, db));
+    return c.json(await formatContent(row, db));
   });
 
   return router;
 }
 
-function formatContent(row: any, db: AppDatabase) {
+async function formatContent(row: any, db: AppDatabase) {
   let instructor = null;
   if (row.instructorId) {
-    instructor = db
+    instructor = await db
       .select()
       .from(schema.instructors)
       .where(eq(schema.instructors.id, row.instructorId))

@@ -4,13 +4,13 @@ import * as schema from "./schema";
 
 export async function seed(db: AppDatabase) {
   // Create tables if they don't exist
-  db.run(sql`CREATE TABLE IF NOT EXISTS instructors (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS instructors (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     avatar_url TEXT
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS categories (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS categories (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     slug TEXT,
@@ -20,7 +20,7 @@ export async function seed(db: AppDatabase) {
     sort_order INTEGER DEFAULT 0
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS content (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS content (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
@@ -36,7 +36,7 @@ export async function seed(db: AppDatabase) {
     created_at TEXT
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS collections (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS collections (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
@@ -48,14 +48,14 @@ export async function seed(db: AppDatabase) {
     is_premium INTEGER DEFAULT 0
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS collection_contents (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS collection_contents (
     collection_id TEXT NOT NULL REFERENCES collections(id),
     content_id TEXT NOT NULL REFERENCES content(id),
     sort_order INTEGER DEFAULT 0,
     PRIMARY KEY (collection_id, content_id)
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS users (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT,
@@ -69,7 +69,7 @@ export async function seed(db: AppDatabase) {
     subscription_expires_at TEXT
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS user_progress (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS user_progress (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id),
     content_id TEXT NOT NULL REFERENCES content(id),
@@ -79,19 +79,19 @@ export async function seed(db: AppDatabase) {
     completed_at TEXT
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS saved_content (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS saved_content (
     user_id TEXT NOT NULL REFERENCES users(id),
     content_id TEXT NOT NULL REFERENCES content(id),
     saved_at TEXT NOT NULL,
     PRIMARY KEY (user_id, content_id)
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS conversations (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS conversations (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id)
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS messages (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS messages (
     id TEXT PRIMARY KEY,
     conversation_id TEXT NOT NULL REFERENCES conversations(id),
     role TEXT NOT NULL,
@@ -100,23 +100,23 @@ export async function seed(db: AppDatabase) {
     feedback TEXT
   )`);
 
-  db.run(sql`CREATE TABLE IF NOT EXISTS suggestion_prompts (
+  await db.run(sql`CREATE TABLE IF NOT EXISTS suggestion_prompts (
     id TEXT PRIMARY KEY,
     text TEXT NOT NULL
   )`);
 
   // Idempotent: check if already seeded
-  const existing = db.select().from(schema.users).all();
+  const existing = await db.select().from(schema.users).all();
   if (existing.length > 0) return;
 
   // --- Instructors ---
-  db.insert(schema.instructors).values([
+  await db.insert(schema.instructors).values([
     { id: "inst_001", name: "Sarah Mitchell", avatarUrl: "https://cdn.app.com/instructors/sarah.jpg" },
     { id: "inst_002", name: "James Porter", avatarUrl: "https://cdn.app.com/instructors/james.jpg" },
   ]).run();
 
   // --- Categories ---
-  db.insert(schema.categories).values([
+  await db.insert(schema.categories).values([
     { id: "cat_meditate", name: "Meditate", slug: "meditate", icon: "circle.fill", color: "#F47D20", sortOrder: 0 },
     { id: "cat_sleep", name: "Sleep", slug: "sleep", icon: "moon.fill", color: "#8264C8", sortOrder: 1 },
     { id: "cat_move", name: "Move", slug: "move", icon: "forward.fill", color: "#00A050", sortOrder: 2 },
@@ -124,11 +124,12 @@ export async function seed(db: AppDatabase) {
   ]).run();
 
   // --- Content (14 items) ---
-  db.insert(schema.content).values([
+  await db.insert(schema.content).values([
     {
       id: "cnt_001", title: "Finding Calm in Chaos", description: "A guided meditation to find peace amid daily stress.",
       type: "meditation", categoryId: "cat_meditate", instructorId: "inst_001",
       durationSeconds: 600, tags: JSON.stringify(["stress", "beginner", "guided", "morning"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, difficulty: "beginner", createdAt: "2025-01-15",
     },
     {
@@ -136,6 +137,7 @@ export async function seed(db: AppDatabase) {
       description: "A quick breathwork exercise to reset your nervous system.",
       type: "breathwork", categoryId: "cat_meditate",
       durationSeconds: 60, tags: JSON.stringify(["breathwork", "quick"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-03-01",
     },
     {
@@ -143,6 +145,7 @@ export async function seed(db: AppDatabase) {
       description: "Take a moment to reflect on your day.",
       type: "reflect", categoryId: "cat_meditate",
       tags: JSON.stringify(["reflect", "daily"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-03-10",
     },
     {
@@ -150,6 +153,7 @@ export async function seed(db: AppDatabase) {
       description: "A 20-minute meditation on embracing choice in daily life.",
       type: "meditation", categoryId: "cat_meditate",
       durationSeconds: 1200, tags: JSON.stringify(["meditation", "daily"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-03-10",
     },
     {
@@ -157,6 +161,7 @@ export async function seed(db: AppDatabase) {
       description: "A calming sleep story to ease you into rest.",
       type: "sleepStory", categoryId: "cat_sleep",
       durationSeconds: 420, tags: JSON.stringify(["sleep", "story"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-03-10",
     },
     {
@@ -164,6 +169,7 @@ export async function seed(db: AppDatabase) {
       description: "A short video on finding gratitude in the mundane.",
       type: "video", categoryId: "cat_meditate",
       durationSeconds: 60, tags: JSON.stringify(["video", "gratitude"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-02-01",
     },
     {
@@ -171,6 +177,7 @@ export async function seed(db: AppDatabase) {
       description: "An inspiring video about building hope through mindfulness.",
       type: "video", categoryId: "cat_meditate",
       durationSeconds: 240, tags: JSON.stringify(["video", "hope"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-02-15",
     },
     {
@@ -178,6 +185,7 @@ export async function seed(db: AppDatabase) {
       description: "45 minutes of gentle rain sounds on a tin roof.",
       type: "soundscape", categoryId: "cat_sleep",
       durationSeconds: 2700, tags: JSON.stringify(["sleep", "rain", "soundscape"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-01-20",
     },
     {
@@ -185,6 +193,7 @@ export async function seed(db: AppDatabase) {
       description: "A soothing sleep story set in a peaceful countryside garden.",
       type: "sleepStory", categoryId: "cat_sleep", instructorId: "inst_002",
       durationSeconds: 1800, tags: JSON.stringify(["sleep", "story"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: true, createdAt: "2025-02-10",
     },
     {
@@ -192,6 +201,7 @@ export async function seed(db: AppDatabase) {
       description: "Looping ocean wave sounds for deep relaxation.",
       type: "soundscape", categoryId: "cat_sleep",
       tags: JSON.stringify(["soundscape", "loop"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-01-05",
     },
     {
@@ -199,6 +209,7 @@ export async function seed(db: AppDatabase) {
       description: "Nighttime forest ambience with crickets and owls.",
       type: "soundscape", categoryId: "cat_sleep",
       tags: JSON.stringify(["soundscape", "loop"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-01-05",
     },
     {
@@ -206,6 +217,7 @@ export async function seed(db: AppDatabase) {
       description: "Soft rain sounds for focus or sleep.",
       type: "soundscape", categoryId: "cat_sleep",
       tags: JSON.stringify(["soundscape", "loop"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-01-05",
     },
     {
@@ -213,6 +225,7 @@ export async function seed(db: AppDatabase) {
       description: "A 15-minute body scan meditation designed for bedtime.",
       type: "meditation", categoryId: "cat_sleep",
       durationSeconds: 900, tags: JSON.stringify(["sleep", "body-scan"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-02-20",
     },
     {
@@ -220,12 +233,13 @@ export async function seed(db: AppDatabase) {
       description: "A 5-minute breathwork session to release the day's tension.",
       type: "breathwork", categoryId: "cat_sleep",
       durationSeconds: 300, tags: JSON.stringify(["sleep", "breathwork"]),
+      audioUrl: "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
       isPremium: false, createdAt: "2025-02-20",
     },
   ]).run();
 
   // --- Collections ---
-  db.insert(schema.collections).values([
+  await db.insert(schema.collections).values([
     {
       id: "col_001", title: "CBT for Anxiety & Depression",
       description: "A structured program using cognitive behavioral therapy techniques.",
@@ -253,13 +267,29 @@ export async function seed(db: AppDatabase) {
   ]).run();
 
   // --- Collection Contents ---
-  db.insert(schema.collectionContents).values([
+  await db.insert(schema.collectionContents).values([
+    // CBT for Anxiety & Depression
+    { collectionId: "col_001", contentId: "cnt_001", sortOrder: 0 },
+    { collectionId: "col_001", contentId: "cnt_012", sortOrder: 1 },
+    { collectionId: "col_001", contentId: "cnt_021", sortOrder: 2 },
+    { collectionId: "col_001", contentId: "cnt_020", sortOrder: 3 },
+    // Finding Your Best Sleep
+    { collectionId: "col_002", contentId: "cnt_040", sortOrder: 0 },
+    { collectionId: "col_002", contentId: "cnt_041", sortOrder: 1 },
+    { collectionId: "col_002", contentId: "cnt_060", sortOrder: 2 },
+    { collectionId: "col_002", contentId: "cnt_061", sortOrder: 3 },
+    { collectionId: "col_002", contentId: "cnt_022", sortOrder: 4 },
+    // Self-Care for Parents (editorial / featured)
+    { collectionId: "col_010", contentId: "cnt_030", sortOrder: 0 },
+    { collectionId: "col_010", contentId: "cnt_031", sortOrder: 1 },
+    { collectionId: "col_010", contentId: "cnt_001", sortOrder: 2 },
+    // Wind down routines
     { collectionId: "col_020", contentId: "cnt_060", sortOrder: 0 },
     { collectionId: "col_020", contentId: "cnt_061", sortOrder: 1 },
   ]).run();
 
   // --- Users ---
-  db.insert(schema.users).values({
+  await db.insert(schema.users).values({
     id: "usr_001", name: "Samuel East", email: "samuel@example.com",
     avatarUrl: "https://cdn.app.com/avatars/usr_001.jpg",
     joinedAt: "2021-09-14",
@@ -318,23 +348,23 @@ export async function seed(db: AppDatabase) {
   // Insert progress in batches
   for (let i = 0; i < progressEntries.length; i += 20) {
     const batch = progressEntries.slice(i, i + 20);
-    db.insert(schema.userProgress).values(batch).run();
+    await db.insert(schema.userProgress).values(batch).run();
   }
 
   // --- Saved Content ---
-  db.insert(schema.savedContent).values([
+  await db.insert(schema.savedContent).values([
     { userId: "usr_001", contentId: "cnt_001", savedAt: "2025-06-01" },
     { userId: "usr_001", contentId: "cnt_012", savedAt: "2025-08-15" },
     { userId: "usr_001", contentId: "cnt_040", savedAt: "2025-09-20" },
   ]).run();
 
   // --- Conversations ---
-  db.insert(schema.conversations).values({
+  await db.insert(schema.conversations).values({
     id: "conv_001", userId: "usr_001",
   }).run();
 
   // --- Messages ---
-  db.insert(schema.messages).values({
+  await db.insert(schema.messages).values({
     id: "msg_001",
     conversationId: "conv_001",
     role: "assistant",
@@ -343,7 +373,7 @@ export async function seed(db: AppDatabase) {
   }).run();
 
   // --- Suggestion Prompts ---
-  db.insert(schema.suggestionPrompts).values([
+  await db.insert(schema.suggestionPrompts).values([
     { id: "sug_001", text: "I'm feeling overwhelmed" },
     { id: "sug_002", text: "Help me fall asleep" },
     { id: "sug_003", text: "Prepare for a conversation" },

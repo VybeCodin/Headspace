@@ -18,10 +18,10 @@ export function statsRoutes(db: AppDatabase) {
       200: { description: "User stats", content: { "application/json": { schema: resolver(StatsSchema) } } },
       404: { description: "Not found", content: { "application/json": { schema: resolver(ErrorSchema) } } },
     },
-  }), (c) => {
+  }), async (c) => {
     const userId = c.req.param("id");
 
-    const user = db
+    const user = await db
       .select()
       .from(schema.users)
       .where(eq(schema.users.id, userId))
@@ -29,7 +29,7 @@ export function statsRoutes(db: AppDatabase) {
 
     if (!user) throw new NotFoundError("User", userId);
 
-    const stats = computeStats(db, userId);
+    const stats = await computeStats(db, userId);
     return c.json(stats);
   });
 

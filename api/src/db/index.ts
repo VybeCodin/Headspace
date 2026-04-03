@@ -1,22 +1,16 @@
-import { drizzle } from "drizzle-orm/bun-sqlite";
-import { Database } from "bun:sqlite";
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
 import * as schema from "./schema";
 
-export function createDb(url?: string) {
-  const sqlite = new Database(url || process.env.DATABASE_URL || "./headspace.db");
-  sqlite.exec("PRAGMA journal_mode = WAL;");
-  sqlite.exec("PRAGMA foreign_keys = ON;");
-  return drizzle(sqlite, { schema });
+export function createDb() {
+  const client = process.env.TURSO_DATABASE_URL
+    ? createClient({
+        url: process.env.TURSO_DATABASE_URL,
+        authToken: process.env.TURSO_AUTH_TOKEN,
+      })
+    : createClient({ url: "file:./headspace.db" });
+
+  return drizzle(client, { schema });
 }
 
 export type AppDatabase = ReturnType<typeof createDb>;
-
-// Default singleton for production
-let db: AppDatabase | null = null;
-
-export function getDb(): AppDatabase {
-  if (!db) {
-    db = createDb();
-  }
-  return db;
-}
