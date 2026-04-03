@@ -190,6 +190,14 @@ struct CategoryDetailView: View {
 
             Spacer()
 
+            Button {
+                Task { await dataService.toggleFavorite(contentId: item.id) }
+            } label: {
+                Image(systemName: dataService.savedContentIds.contains(item.id) ? "heart.fill" : "heart")
+                    .font(.system(size: 18))
+                    .foregroundStyle(dataService.savedContentIds.contains(item.id) ? .red : Color.gray.opacity(0.4))
+            }
+
             Image(systemName: "play.circle.fill")
                 .font(.system(size: 32))
                 .foregroundStyle(category.swiftColor)

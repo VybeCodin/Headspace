@@ -5,6 +5,8 @@ struct TodayView: View {
     @State private var selectedFilter = 0
     @State private var selectedItem: TodaySectionItem?
     @State private var selectedVideoItem: TodaySectionItem?
+    @State private var selectedFavCollection: GuidedProgramSummary?
+    @State private var favoritesLoaded = false
     private let filters = ["Recents", "Favorites"]
 
     var body: some View {
@@ -25,31 +27,7 @@ struct TodayView: View {
 
                             // Dynamic sections from data
                             if selectedFilter == 1 {
-                                let favSections = data.sections.compactMap { section -> TodaySection? in
-                                    let filtered = section.items.filter { dataService.savedContentIds.contains($0.contentId) }
-                                    guard !filtered.isEmpty else { return nil }
-                                    return TodaySection(id: section.id, type: section.type, title: section.title, layout: section.layout, collectionId: section.collectionId, items: filtered)
-                                }
-                                if favSections.isEmpty {
-                                    VStack(spacing: 12) {
-                                        Image(systemName: "heart")
-                                            .font(.system(size: 40))
-                                            .foregroundColor(HeadspaceTheme.secondaryText)
-                                        Text("No favorites yet")
-                                            .font(.system(size: 17, weight: .semibold))
-                                            .foregroundColor(HeadspaceTheme.primaryText)
-                                        Text("Tap the heart icon on any session to save it here.")
-                                            .font(.system(size: 15))
-                                            .foregroundColor(HeadspaceTheme.secondaryText)
-                                            .multilineTextAlignment(.center)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 60)
-                                } else {
-                                    ForEach(favSections) { section in
-                                        sectionView(for: section)
-                                    }
-                                }
+                                favoritesSection
                             } else {
                                 ForEach(data.sections) { section in
                                     sectionView(for: section)
@@ -77,6 +55,20 @@ struct TodayView: View {
         .fullScreenCover(item: $selectedVideoItem) { item in
             VideoPlayerView(item: item)
                 .environment(dataService)
+        }
+        .fullScreenCover(item: $selectedFavCollection) { program in
+            CollectionDetailView(
+                collectionId: program.collectionId,
+                collectionTitle: program.title,
+                gradientColors: program.gradientColors.map { Color(hex: $0) }
+            )
+            .environment(dataService)
+        }
+        .onChange(of: selectedFilter) { _, newValue in
+            if newValue == 1 && !favoritesLoaded {
+                favoritesLoaded = true
+                Task { await dataService.loadFavoritesContent() }
+            }
         }
     }
 
@@ -275,6 +267,125 @@ struct TodayView: View {
         Ellipse()
             .fill(Color(red: 1, green: 0.78, blue: 0.86).opacity(0.8))
             .frame(width: 120, height: 50)
+    }
+
+    // MARK: - Favorites
+
+    @ViewBuilder
+    private var favoritesSection: some View {
+        let savedContent = dataService.savedContentIds.compactMap { dataService.contentStore[$0] }
+        let savedPrograms = (dataService.exploreData?.guidedPrograms ?? []).filter {
+            dataService.savedContentIds.contains($0.collectionId)
+        }
+
+        if savedContent.isEmpty && savedPrograms.isEmpty {
+            VStack(spacing: 12) {
+                Image(systemName: "heart")
+                    .font(.system(size: 40))
+                    .foregroundColor(HeadspaceTheme.secondaryText)
+                Text("No favorites yet")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(HeadspaceTheme.primaryText)
+                Text("Tap the heart icon on any session to save it here.")
+                    .font(.system(size: 15))
+                    .foregroundColor(HeadspaceTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 60)
+        } else {
+            if !savedPrograms.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Saved Programs")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(HeadspaceTheme.primaryText)
+
+                    ForEach(savedPrograms) { program in
+                        Button { selectedFavCollection = program } label: {
+                            ProgramCard(program: program)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            if !savedContent.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Saved Sessions")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(HeadspaceTheme.primaryText)
+
+                    ForEach(savedContent) { item in
+                        Button {
+                            let todayItem = item.asTodaySectionItem
+                            if item.type == .video {
+                                selectedVideoItem = todayItem
+                            } else {
+                                selectedItem = todayItem
+                            }
+                        } label: {
+                            favoriteContentRow(item)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private func favoriteContentRow(_ item: Content) -> some View {
+        HStack(spacing: 14) {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(item.asTodaySectionItem.gradient)
+                .frame(width: 52, height: 52)
+                .overlay(
+                    Image(systemName: iconForContentType(item.type))
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.white)
+                )
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(HeadspaceTheme.primaryText)
+                    .lineLimit(1)
+
+                HStack(spacing: 5) {
+                    Text(item.type.displayName)
+                        .font(.system(size: 12, weight: .medium))
+                    if !item.durationLabel.isEmpty {
+                        Text("·")
+                        Text(item.durationLabel)
+                            .font(.system(size: 12))
+                    }
+                }
+                .foregroundStyle(HeadspaceTheme.secondaryText)
+            }
+
+            Spacer()
+
+            Button {
+                Task { await dataService.toggleFavorite(contentId: item.id) }
+            } label: {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(.red)
+            }
+        }
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 16).fill(Color.white))
+    }
+
+    private func iconForContentType(_ type: ContentType) -> String {
+        switch type {
+        case .meditation: return "brain.head.profile"
+        case .breathwork: return "wind"
+        case .sleepStory: return "moon.stars"
+        case .soundscape: return "waveform"
+        case .video: return "play.rectangle"
+        case .focusMusic: return "music.note"
+        case .reflect: return "sparkles"
+        }
     }
 
     // MARK: - Filter Pills

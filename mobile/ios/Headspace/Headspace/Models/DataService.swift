@@ -140,6 +140,14 @@ final class DataService {
         }
     }
 
+    func loadFavoritesContent() async {
+        for id in savedContentIds {
+            if contentStore[id] == nil {
+                _ = try? await loadContent(id: id)
+            }
+        }
+    }
+
     // MARK: - Load Methods
 
     func loadToday() async {

@@ -139,19 +139,36 @@ struct CollectionDetailView: View {
                 }
             }
 
-            // Custom back button
-            Button { dismiss() } label: {
-                Circle()
-                    .fill(Color.black.opacity(0.3))
-                    .frame(width: 40, height: 40)
-                    .overlay(
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(.white)
-                    )
+            // Top bar buttons
+            HStack {
+                Button { dismiss() } label: {
+                    Circle()
+                        .fill(Color.black.opacity(0.3))
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.white)
+                        )
+                }
+
+                Spacer()
+
+                Button {
+                    Task { await dataService.toggleFavorite(contentId: collectionId) }
+                } label: {
+                    Circle()
+                        .fill(Color.black.opacity(0.3))
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            Image(systemName: dataService.savedContentIds.contains(collectionId) ? "heart.fill" : "heart")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(dataService.savedContentIds.contains(collectionId) ? .red : .white)
+                        )
+                }
             }
             .padding(.top, 54)
-            .padding(.leading, 16)
+            .padding(.horizontal, 16)
         }
         .navigationBarHidden(true)
         .task {
